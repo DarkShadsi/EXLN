@@ -8,27 +8,30 @@ import java.util.Scanner;
 
 public class Main {
     static boolean hadError;
+    Lexer lexer;
 
     public static void main(String[] args) {
         Main main = new Main();
         Scanner scanner = new Scanner(System.in);
 
         if (args.length == 0) {
-            while(!hadError) {
+            while(true) {
+                System.out.println("EXLN::> ");
                 String line = scanner.nextLine();
+                if (line.equals("exit")) break;
                 main.run(line);
+                hadError = false;
             }
         } else if (args.length == 1) {
             Path path = Path.of(args[0]);
             try {
-                List<String> lines = Files.readAllLines(path);
-                for (String line : lines) {
-                    main.run(line);
-                    if (hadError) break;
-                }
+                String source =  Files.readString(path);
+                main.run(source);
             } catch (IOException e) {
+                System.out.println("Error reading the file.");
                 hadError = true;
             }
+            if (hadError) {System.exit(65);}
         } else {
             System.out.println("USAGE: use the filename as argument or no arguments to enter REPL.");
             return;
@@ -36,7 +39,12 @@ public class Main {
     }
 
     void run(String source) {
-        error(1, "test");
+        lexer = new Lexer(source);
+        List<Token> tokens = lexer.scanTokens();
+        if (hadError) {return;}
+        for (Token token : tokens) {
+            System.out.println(token.toString());
+        }
     }
 
     static void error(int line, String message) {
