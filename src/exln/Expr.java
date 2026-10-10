@@ -1,4 +1,4 @@
-package exln
+package exln;
 
 import java.util.List;
 
@@ -21,12 +21,12 @@ public abstract class Expr {
         R visitIndexSetExpr(IndexSet expr);
     }
     public static class Assign extends Expr {
-        static Token name;
-        static Expr value;
+        public final Token name;
+        public final Expr value;
 
         public Assign(Token name, Expr value) {
-            this.name =name;
-            this.Expr =Expr;
+            this.name = name;
+            this.value = value;
         }
 
         @Override
@@ -36,14 +36,14 @@ public abstract class Expr {
     }
 
     public static class Binary extends Expr {
-        static Expr left;
-        static Token operator;
-        static Expr right;
+        public final Expr left;
+        public final Token operator;
+        public final Expr right;
 
         public Binary(Expr left, Token operator, Expr right) {
-            this.left =left;
-            this.Token =Token;
-            this.Expr =Expr;
+            this.left = left;
+            this.operator = operator;
+            this.right = right;
         }
 
         @Override
@@ -53,14 +53,14 @@ public abstract class Expr {
     }
 
     public static class Logical extends Expr {
-        static Expr left;
-        static Token operator;
-        static Expr right;
+        public final Expr left;
+        public final Token operator;
+        public final Expr right;
 
         public Logical(Expr left, Token operator, Expr right) {
-            this.left =left;
-            this.Token =Token;
-            this.Expr =Expr;
+            this.left = left;
+            this.operator = operator;
+            this.right = right;
         }
 
         @Override
@@ -70,12 +70,12 @@ public abstract class Expr {
     }
 
     public static class Unary extends Expr {
-        static Token operator;
-        static Expr right;
+        public final Token operator;
+        public final Expr right;
 
         public Unary(Token operator, Expr right) {
-            this.operator =operator;
-            this.Expr =Expr;
+            this.operator = operator;
+            this.right = right;
         }
 
         @Override
@@ -85,10 +85,10 @@ public abstract class Expr {
     }
 
     public static class Grouping extends Expr {
-        static Expr expression;
+        public final Expr expression;
 
         public Grouping(Expr expression) {
-            this.expression =expression;
+            this.expression = expression;
         }
 
         @Override
@@ -98,10 +98,10 @@ public abstract class Expr {
     }
 
     public static class Literal extends Expr {
-        static Object value;
+        public final Object value;
 
         public Literal(Object value) {
-            this.value =value;
+            this.value = value;
         }
 
         @Override
@@ -111,10 +111,10 @@ public abstract class Expr {
     }
 
     public static class Variable extends Expr {
-        static Token name;
+        public final Token name;
 
         public Variable(Token name) {
-            this.name =name;
+            this.name = name;
         }
 
         @Override
@@ -124,14 +124,14 @@ public abstract class Expr {
     }
 
     public static class Call extends Expr {
-        static Expr callee;
-        static Token paren;
-        static List<Expr> arguments;
+        public final Expr callee;
+        public final Token paren;
+        public final List<Expr> arguments;
 
         public Call(Expr callee, Token paren, List<Expr> arguments) {
-            this.callee =callee;
-            this.Token =Token;
-            this.List<Expr> =List<Expr>;
+            this.callee = callee;
+            this.paren = paren;
+            this.arguments = arguments;
         }
 
         @Override
@@ -141,12 +141,12 @@ public abstract class Expr {
     }
 
     public static class Get extends Expr {
-        static Expr object;
-        static Token name;
+        public final Expr object;
+        public final Token name;
 
         public Get(Expr object, Token name) {
-            this.object =object;
-            this.Token =Token;
+            this.object = object;
+            this.name = name;
         }
 
         @Override
@@ -156,14 +156,14 @@ public abstract class Expr {
     }
 
     public static class Set extends Expr {
-        static Expr object;
-        static Token name;
-        static Expr value;
+        public final Expr object;
+        public final Token name;
+        public final Expr value;
 
         public Set(Expr object, Token name, Expr value) {
-            this.object =object;
-            this.Token =Token;
-            this.Expr =Expr;
+            this.object = object;
+            this.name = name;
+            this.value = value;
         }
 
         @Override
@@ -173,10 +173,10 @@ public abstract class Expr {
     }
 
     public static class This extends Expr {
-        static Token keyword;
+        public final Token keyword;
 
         public This(Token keyword) {
-            this.keyword =keyword;
+            this.keyword = keyword;
         }
 
         @Override
@@ -186,12 +186,12 @@ public abstract class Expr {
     }
 
     public static class Super extends Expr {
-        static Token keyword;
-        static Token methodName;
+        public final Token keyword;
+        public final Token methodName;
 
         public Super(Token keyword, Token methodName) {
-            this.keyword =keyword;
-            this.Token =Token;
+            this.keyword = keyword;
+            this.methodName = methodName;
         }
 
         @Override
@@ -201,10 +201,10 @@ public abstract class Expr {
     }
 
     public static class ArrayLiteral extends Expr {
-        static List<Expr> elements;
+        public final List<Expr> elements;
 
         public ArrayLiteral(List<Expr> elements) {
-            this.elements =elements;
+            this.elements = elements;
         }
 
         @Override
@@ -214,14 +214,14 @@ public abstract class Expr {
     }
 
     public static class Index extends Expr {
-        static Expr object;
-        static Token bracket;
-        static Expr index;
+        public final Expr object;
+        public final Token bracket;
+        public final Expr index;
 
         public Index(Expr object, Token bracket, Expr index) {
-            this.object =object;
-            this.Token =Token;
-            this.Expr =Expr;
+            this.object = object;
+            this.bracket = bracket;
+            this.index = index;
         }
 
         @Override
@@ -231,16 +231,16 @@ public abstract class Expr {
     }
 
     public static class IndexSet extends Expr {
-        static Expr object;
-        static Token bracket;
-        static Expr index;
-        static Expr value;
+        public final Expr object;
+        public final Token bracket;
+        public final Expr index;
+        public final Expr value;
 
         public IndexSet(Expr object, Token bracket, Expr index, Expr value) {
-            this.object =object;
-            this.Token =Token;
-            this.Expr =Expr;
-            this.Expr =Expr;
+            this.object = object;
+            this.bracket = bracket;
+            this.index = index;
+            this.value = value;
         }
 
         @Override

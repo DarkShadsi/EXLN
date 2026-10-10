@@ -41,7 +41,7 @@ public class GenerateAst {
         PrintWriter writer = new PrintWriter(path, "UTF-8");
 
         // IMPORTS AND PACKAGE
-        writer.println("package exln");
+        writer.println("package exln;");
         writer.println();
         writer.println("import java.util.List;");
         writer.println();
@@ -87,14 +87,15 @@ public class GenerateAst {
 
         // DECLARE STATIC FIELDS
         for (String field : fields) {
-            writer.println("        static " + field.trim() + ";");
+            writer.println("        public final " + field.trim() + ";");
         }
 
         // CREATE THE CONSTRUCTOR
         writer.println();
         writer.println("        public " + className + "(" + fieldList + ") {");
         for (String field : fields) {
-            writer.println("            this." + field.split(" ")[1] + " =" + field.split(" ")[1] + ";");
+            String name = field.trim().split(" ")[1];
+            writer.println("            this." + name + " = " + name + ";");
         }
         writer.println("        }");
 
