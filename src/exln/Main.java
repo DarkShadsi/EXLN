@@ -16,9 +16,9 @@ public class Main {
 
         if (args.length == 0) {
             while(true) {
-                System.out.println("EXLN::> ");
+                System.out.print("EXLN:: ");
                 String line = scanner.nextLine();
-                if (line.equals("exit")) break;
+                if (line.equals("exit") || line.equals("quit") || line.equals("q")) break;
                 main.run(line);
                 hadError = false;
             }
