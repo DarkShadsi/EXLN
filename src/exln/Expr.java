@@ -250,5 +250,5 @@ public abstract class Expr {
     }
 
 
-    abstract <R> R accept(Visitor<R> visitor);
+    public abstract <R> R accept(Visitor<R> visitor);
 }
