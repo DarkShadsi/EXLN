@@ -9,6 +9,8 @@ import java.util.Scanner;
 public class Main {
     static boolean hadError;
     Lexer lexer;
+    Parser parser;
+    ASTPrinter printer;
 
     public static void main(String[] args) {
         Main main = new Main();
@@ -16,7 +18,7 @@ public class Main {
 
         if (args.length == 0) {
             while(true) {
-                System.out.print("EXLN:: ");
+                System.out.print("EXLN:> ");
                 String line = scanner.nextLine();
                 if (line.equals("exit") || line.equals("quit") || line.equals("q")) break;
                 main.run(line);
@@ -40,15 +42,27 @@ public class Main {
 
     void run(String source) {
         lexer = new Lexer(source);
+        parser = new Parser();
+        printer = new ASTPrinter();
         List<Token> tokens = lexer.scanTokens();
         if (hadError) {return;}
-        for (Token token : tokens) {
-            System.out.println(token.toString());
-        }
+        Expr expr = parser.parse(tokens);
+        if (hadError || expr == null) { return; }
+        System.out.println("EXLN:: " + printer.print(expr));
+
     }
 
     static void error(int line, String message) {
-        System.out.printf("[line %d] Error: %s\n", line, message);
+        System.out.printf("EXLN:: [line %d] Error: %s\n", line, message);
+        hadError = true;
+    }
+
+    static void error(Token token, String message) {
+        if (token.type == TokenType.EOF) {
+            System.out.printf("EXLN:: [line %d] Error at end: %s\n", token.line, message);
+        } else {
+            System.out.printf("EXLN:: [line %d] Error at '%s': %s\n", token.line, token.lexeme, message);
+        }
         hadError = true;
     }
 }
