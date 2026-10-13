@@ -1,53 +1,8 @@
-package tools;
+package exln;
 
-import exln.Expr;
-import exln.Token;
-import exln.TokenType;
 import java.util.List;
 
 public class ASTPrinter implements Expr.Visitor<String> {
-
-    public static void main(String[] args) {
-        // 1. The main test from the prompt: (* (- 123.0) (group 45.67))
-        Expr expression = new Expr.Binary(
-                new Expr.Unary(
-                        new Token(TokenType.MINUS, "-", null, 1),
-                        new Expr.Literal(123.0)
-                ),
-                new Token(TokenType.STAR, "*", null, 1),
-                new Expr.Grouping(
-                        new Expr.Literal(45.67)
-                )
-        );
-        System.out.println("Binary/Unary/Grouping test:");
-        System.out.println(new ASTPrinter().print(expression));
-
-        // 2. Test a Call expression: call(print, 123)
-        Expr callExpr = new Expr.Call(
-                new Expr.Variable(new Token(TokenType.IDENTIFIER, "print", null, 1)),
-                new Token(TokenType.LEFT_PAREN, "(", null, 1),
-                List.of(new Expr.Literal(123.0))
-        );
-        System.out.println("\nCall test:");
-        System.out.println(new ASTPrinter().print(callExpr));
-
-        // 3. Test a Get expression: . (object, name)
-        Expr getExpr = new Expr.Get(
-                new Expr.Variable(new Token(TokenType.IDENTIFIER, "obj", null, 1)),
-                new Token(TokenType.IDENTIFIER, "property", null, 1)
-        );
-        System.out.println("\nGet test:");
-        System.out.println(new ASTPrinter().print(getExpr));
-
-        // 4. Test an Index expression: index (object, index)
-        Expr indexExpr = new Expr.Index(
-                new Expr.Variable(new Token(TokenType.IDENTIFIER, "arr", null, 1)),
-                new Token(TokenType.LEFT_BRACKET, "[", null, 1),
-                new Expr.Literal(0.0)
-        );
-        System.out.println("\nIndex test:");
-        System.out.println(new ASTPrinter().print(indexExpr));
-    }
 
     public String print(Expr expr) {
         return expr.accept(this);
