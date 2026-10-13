@@ -6,30 +6,28 @@ import java.util.List;
 public class Parser {
     private List<Token> tokenList = new ArrayList<>();
     private int currentIndex = 0;
+    private int loopDepth = 0;
 
     private static class ParseError extends RuntimeException {
     }
 
     // ENTRY POINT
-    public Expr parse(List<Token> tokenList) {
+    public List<Stmt> parse(List<Token> tokenList) {
         this.tokenList = tokenList;
         this.currentIndex = 0;
+        this.loopDepth = 0;
 
-        // Empty input: nothing to parse, and no error
-        if (isAtEnd()) {
-            return null;
-        }
+        List<Stmt> statements = new ArrayList<>();
 
-        try {
-            Expr expr = expression();
-            if (!isAtEnd()) {
-                error(peek(), "Expect end of expression.");
-                return null;
+        while (!isAtEnd()) {
+            Stmt declr = declaration();
+            if (declr != null) {
+                statements.add(declr);
             }
-            return expr;
-        } catch (ParseError e) {
-            return null;
+
         }
+
+        return statements;
     }
 
     // HELPERS
@@ -66,6 +64,29 @@ public class Parser {
     private ParseError error(Token token, String message) {
         Main.error(token, message);
         return new ParseError();
+    }
+    private void synchronize() {
+        advance();
+        while(!isAtEnd()) {
+            if(previous().type == TokenType.SEMICOLON) return;
+            switch (peek().type) {
+                case CLASS:
+                case FUNC:
+                case VAR:
+                case ENUM:
+                case FOR:
+                case IF:
+                case WHILE:
+                case DO:
+                case SWITCH:
+                case PRINT:
+                case RETURN:
+                case BREAK:
+                case CONTINUE:
+                    return;
+            }
+            advance();
+        }
     }
 
     // EXPRESSIONS
@@ -235,5 +256,297 @@ public class Parser {
         }
 
         throw error(peek(), "Expect expression.");
+    }
+
+    // STATEMENTS
+    private Stmt declaration() {
+        try{
+            if (match(TokenType.CLASS)) return classDeclaration();
+            if (match(TokenType.FUNC)) return function("function");
+            if (match(TokenType.ENUM)) return enumDeclaration();
+            if (match(TokenType.VAR)) return varDeclaration();
+
+            return statement();
+        } catch (ParseError e) {
+            synchronize();
+            return null;
+        }
+    }
+    private Stmt varDeclaration() {
+        Token identifier = consume(TokenType.IDENTIFIER, "Expect variable name.");
+        Expr initializer = expression();
+        if(match(TokenType.EQUAL)) {
+            initializer = expression();
+        }
+        consume(TokenType.SEMICOLON, "Expect ';' after variable declaration.");
+
+        return new Stmt.Var(identifier, initializer);
+    }
+    private Stmt enumDeclaration() {
+        Token name = consume(TokenType.IDENTIFIER, "Expect enum name.");
+        consume(TokenType.LEFT_BRACE, "Expect '{' for enum declaration.");
+
+        List<Token> members = new ArrayList<>();
+        if (check(TokenType.RIGHT_BRACE)) {
+            do {
+                members.add(consume(TokenType.IDENTIFIER, "Expect enum member name."));
+            } while (match(TokenType.COMMA));
+        }
+
+        consume(TokenType.RIGHT_BRACE, "Expect '}' after enum declaration.");
+        return new Stmt.Enum(name, members);
+    }
+    private Stmt.Function function(String kind) {
+        Token name = consume(TokenType.IDENTIFIER, "Expect " + kind + " name.");
+        consume(TokenType.LEFT_PAREN, "Expect '(' after " + kind + " name.");
+
+        List<Token> parameters = new ArrayList<>();
+        if (!check(TokenType.RIGHT_PAREN)) {
+            do {
+                if (parameters.size() >= 255) {
+                    error(peek(), "Can't have more than 255 parameters.");
+                }
+                parameters.add(consume(TokenType.IDENTIFIER, "Expect parameter name."));
+            } while (match(TokenType.COMMA));
+        }
+
+        consume(TokenType.RIGHT_PAREN, "Expect ')' after parameters.");
+        consume(TokenType.LEFT_BRACE, "Expect '{' before " + kind + " body.");
+
+        int enclosingLoopDepth = this.loopDepth;
+        this.loopDepth = 0;
+        try {
+            List<Stmt> body = block();
+            return new Stmt.Function(name, parameters, body);
+        } finally {
+            this.loopDepth = enclosingLoopDepth;
+        }
+    }
+    private List<Stmt> block() {
+        List<Stmt> statements = new ArrayList<>();
+
+        while (!check(TokenType.RIGHT_BRACE) && !isAtEnd()) {
+            statements.add(declaration());
+        }
+
+        consume(TokenType.RIGHT_BRACE, "Expect '}' after block.");
+        return statements;
+    }
+    private Stmt classDeclaration() {
+        Token name = consume(TokenType.IDENTIFIER, "Expect class name.");
+
+        Expr.Variable superclass = null;
+        if (match(TokenType.LESS)) {
+            Token superclassToken = consume(TokenType.IDENTIFIER, "Expect superclass name.");
+            superclass = new Expr.Variable(superclassToken);
+        }
+
+        consume(TokenType.LEFT_BRACE, "Expect '{' before class body.");
+
+        List<Stmt.Function> methods = new ArrayList<>();
+        while (!check(TokenType.RIGHT_BRACE) && !isAtEnd()) {
+            methods.add(function("method"));
+        }
+
+        consume(TokenType.RIGHT_BRACE, "Expect '}' after class body.");
+        return new Stmt.Class(name, superclass, methods);
+    }
+    private Stmt statement() {
+        if (match(TokenType.FOR)) return forStatement();
+        if (match(TokenType.IF)) return ifStatement();
+        if (match(TokenType.SWITCH)) return switchStatement();
+        if (match(TokenType.PRINT)) return printStatement();
+        if (match(TokenType.RETURN)) return returnStatement();
+        if (match(TokenType.WHILE)) return whileStatement();
+        if (match(TokenType.DO)) return doWhileStatement();
+        if (match(TokenType.BREAK)) return breakStatement();
+        if (match(TokenType.CONTINUE)) return continueStatement();
+        if (match(TokenType.LEFT_BRACE)) return new Stmt.Block(block());
+
+        return expressionStatement();
+    }
+    private Stmt printStatement() {
+        Expr value = expression();
+        consume(TokenType.SEMICOLON, "Expect ';' after value.");
+        return new Stmt.Print(value);
+    }
+    private Stmt expressionStatement() {
+        Expr expr = expression();
+        consume(TokenType.SEMICOLON, "Expect ';' after expression.");
+        return new Stmt.Expression(expr);
+    }
+    private Stmt returnStatement() {
+        Token keyword = previous();
+        Expr value = null;
+        if (!check(TokenType.SEMICOLON)) {
+            value = expression();
+        }
+
+        consume(TokenType.SEMICOLON, "Expect ';' after return value.");
+        return new Stmt.Return(keyword, value);
+    }
+    private Stmt breakStatement() {
+        Token keyword = previous();
+        if (loopDepth == 0) {
+            error(keyword, "Cannot use 'break' outside of a loop.");
+        }
+        consume(TokenType.SEMICOLON, "Expect ';' after 'break'.");
+        return new Stmt.Break(keyword);
+    }
+    private Stmt continueStatement() {
+        Token keyword = previous();
+        if (loopDepth == 0) {
+            error(keyword, "Cannot use 'continue' outside of a loop.");
+        }
+        consume(TokenType.SEMICOLON, "Expect ';' after 'continue'.");
+        return new Stmt.Continue(keyword);
+    }
+    private Stmt ifStatement() {
+        consume(TokenType.LEFT_PAREN, "Expect '(' after 'if'.");
+        Expr condition = expression();
+        consume(TokenType.RIGHT_PAREN, "Expect ')' after if condition.");
+
+        Stmt thenBranch = statement();
+        Stmt elseBranch = null;
+
+        if (match(TokenType.ELSE)) {
+            if (!(thenBranch instanceof Stmt.Block)) {
+                error(previous(), "'if' body must use braces when followed by 'else'.");
+            }
+
+            if (!check(TokenType.LEFT_BRACE) && !check(TokenType.IF)) {
+                error(peek(), "'else' body must be a block or an 'if'.");
+            }
+
+            elseBranch = statement();
+        }
+        return new Stmt.If(condition, thenBranch, elseBranch);
+    }
+    private Stmt whileStatement() {
+        consume(TokenType.LEFT_PAREN, "Expect '(' after 'while'.");
+        Expr condition = expression();
+        consume(TokenType.RIGHT_PAREN, "Expect ')' after condition.");
+
+        loopDepth++;
+        Stmt body;
+        try {
+            body = statement();
+        } finally {
+            loopDepth--;
+        }
+
+        return new Stmt.While(condition, body, null);
+    }
+    private Stmt doWhileStatement() {
+        consume(TokenType.LEFT_BRACE, "Expect '{' before 'do' body.");
+
+        loopDepth++;
+        List<Stmt> bodyStatements;
+        try {
+            bodyStatements = block();
+        } finally {
+            loopDepth--;
+        }
+        Stmt body = new Stmt.Block(bodyStatements);
+
+        consume(TokenType.WHILE, "Expect 'while' after 'do' body.");
+        consume(TokenType.LEFT_PAREN, "Expect '(' after 'while'.");
+        Expr condition = expression();
+        consume(TokenType.RIGHT_PAREN, "Expect ')' after condition.");
+
+        consume(TokenType.SEMICOLON, "Expect ';' after 'do-while' loop.");
+
+        return new Stmt.DoWhile(body, condition);
+    }
+    private Stmt forStatement() {
+        consume(TokenType.LEFT_PAREN, "Expect '(' after 'for'.");
+
+        Stmt initializer;
+        if (match(TokenType.SEMICOLON)) {
+            initializer = null;
+        } else if (match(TokenType.VAR)) {
+            initializer = varDeclaration();
+        } else {
+            initializer = expressionStatement();
+        }
+
+        Expr condition = null;
+        if (!check(TokenType.SEMICOLON)) {
+            condition = expression();
+        }
+        consume(TokenType.SEMICOLON, "Expect ';' after loop condition.");
+
+        Stmt.Expression increment = null;
+        if (!check(TokenType.RIGHT_PAREN)) {
+            increment = new Stmt.Expression(expression());
+        }
+        consume(TokenType.RIGHT_PAREN, "Expect ')' after for clauses.");
+
+        loopDepth++;
+        Stmt body;
+        try {
+            body = statement();
+        } finally {
+            loopDepth--;
+        }
+
+        if (condition == null) {
+            condition = new Expr.Literal(true);
+        }
+
+        Stmt whileStmt = new Stmt.While(condition, body, increment);
+
+        if (initializer != null) {
+            List<Stmt> blockStatements = new ArrayList<>();
+            blockStatements.add(initializer);
+            blockStatements.add(whileStmt);
+            return new Stmt.Block(blockStatements);
+        }
+
+        return whileStmt;
+    }
+    private Stmt switchStatement() {
+        consume(TokenType.LEFT_PAREN, "Expect '(' after 'switch'.");
+        Expr subject = expression();
+        consume(TokenType.RIGHT_PAREN, "Expect ')' after switch subject.");
+        consume(TokenType.LEFT_BRACE, "Expect '{' before switch body.");
+
+        List<Expr> caseValues = new ArrayList<>();
+        List<List<Stmt>> caseBodies = new ArrayList<>();
+        List<Stmt> defaultBody = null;
+
+        while (!check(TokenType.RIGHT_BRACE) && !isAtEnd()) {
+            if (match(TokenType.CASE)) {
+                Expr value = expression();
+                consume(TokenType.COLON, "Expect ':' after case value.");
+
+                List<Stmt> body = new ArrayList<>();
+                while (!check(TokenType.CASE) && !check(TokenType.DEFAULT) && !check(TokenType.RIGHT_BRACE) && !isAtEnd()) {
+                    body.add(statement());
+                }
+
+                caseValues.add(value);
+                caseBodies.add(body);
+
+            } else if (match(TokenType.DEFAULT)) {
+                consume(TokenType.COLON, "Expect ':' after 'default'.");
+
+                defaultBody = new ArrayList<>();
+                while (!check(TokenType.CASE) && !check(TokenType.DEFAULT) && !check(TokenType.RIGHT_BRACE) && !isAtEnd()) {
+                    defaultBody.add(statement());
+                }
+
+            } else {
+                error(peek(), "Expect 'case' or 'default' inside switch block.");
+                advance();
+            }
+        }
+
+        // 4. Consume the closing right brace '}'
+        consume(TokenType.RIGHT_BRACE, "Expect '}' after switch body.");
+
+        // 5. Build and return the Switch statement AST node
+        // (Adjust parameters based on your specific Stmt.Switch constructor layout)
+        return new Stmt.Switch(subject, caseValues, caseBodies, defaultBody);
     }
 }

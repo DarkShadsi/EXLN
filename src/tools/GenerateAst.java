@@ -14,7 +14,7 @@ public class GenerateAst {
         String outputDir = args[0];
 
         // LIST ALL EXPRESSION TYPES
-        List<String> types = Arrays.asList(
+        List<String> exprTypes = Arrays.asList(
                 "Assign: Token name, Expr value",
                 "Binary: Expr left, Token operator, Expr right",
                 "Logical: Expr left, Token operator, Expr right",
@@ -32,8 +32,27 @@ public class GenerateAst {
                 "IndexSet: Expr object, Token bracket, Expr index, Expr value"
         );
 
+        // LIST ALL STATEMENT TYPES
+        List<String> stmtTypes = Arrays.asList(
+                "Block: List<Stmt> statements",
+                "Expression: Expr expression",
+                "Print: Expr expression",
+                "Var: Token name, Expr initializer",
+                "If: Expr condition, Stmt thenBranch, Stmt elseBranch",
+                "While: Expr condition, Stmt body, Stmt increment",
+                "DoWhile: Stmt body, Expr condition",
+                "Break: Token keyword",
+                "Continue: Token keyword",
+                "Switch: Expr subject, List<Expr> caseValues, List<List<Stmt>> caseBodies, List<Stmt> defaultBody",
+                "Function: Token name, List<Token> params, List<Stmt> body",
+                "Return: Token keyword, Expr value",
+                "Class: Token name, Expr.Variable superclass, List<Stmt.Function> methods",
+                "Enum: Token name, List<Token> members"
+        );
+
         // CREATE THE AST
-        defineAst(outputDir, "Expr", types);
+        defineAst(outputDir, "Expr", exprTypes);
+        defineAst(outputDir, "Stmt", stmtTypes);
     }
 
     private static void defineAst(String outputDir, String baseName, List<String> types) throws IOException {

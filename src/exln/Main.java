@@ -45,10 +45,11 @@ public class Main {
         parser = new Parser();
         printer = new ASTPrinter();
         List<Token> tokens = lexer.scanTokens();
-        if (hadError) {return;}
-        Expr expr = parser.parse(tokens);
-        if (hadError || expr == null) { return; }
-        System.out.println("EXLN:: " + printer.print(expr));
+        List<Stmt> statements = parser.parse(tokens);
+        if (hadError) { return; }
+        for (Stmt stmt : statements) {
+            System.out.println("EXLN:: " + printer.print(stmt));
+        }
 
     }
 
