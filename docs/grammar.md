@@ -95,6 +95,7 @@ digit        ::= "0" … "9"
 | Array | Compound, reference type. `[1, 2, 3]`, zero-based index |
 
 - No raw pointers. Objects and arrays are references: assignment copies the reference, not the data.
+- Arrays are fixed-size. The size is set at creation (by a literal such as `[1, 2, 3]`, or by `array(size)`) and cannot change. Elements can be changed by index assignment, and an index outside `0` to `size - 1` is a runtime error.
 
 ## 5. Operators and type checking (runtime)
 
@@ -119,6 +120,7 @@ Enum values support only `==` and `!=`. Arithmetic on an enum is a runtime error
 | `toString(x)` | Number to String |
 | `toBoolean(x)` | Number to Boolean (`0` = `false`, otherwise `true`) |
 | `length(arr)` | Number of elements in an array |
+| `array(size)` | New array with `size` slots, each `null`. `size` must be a non-negative whole Number, otherwise a runtime error |
 | `Enum.values()` | Array of all members of the enum, in order |
 | `member.order()` | Zero-based position of an enum member |
 

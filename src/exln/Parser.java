@@ -274,7 +274,7 @@ public class Parser {
     }
     private Stmt varDeclaration() {
         Token identifier = consume(TokenType.IDENTIFIER, "Expect variable name.");
-        Expr initializer = expression();
+        Expr initializer = null;
         if(match(TokenType.EQUAL)) {
             initializer = expression();
         }
