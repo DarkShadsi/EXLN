@@ -8,8 +8,10 @@ import java.util.Scanner;
 
 public class Main {
     static boolean hadError;
+    static boolean hadRuntimeError;
     Lexer lexer;
     Parser parser;
+    Interpreter interpreter;
     ASTPrinter printer;
 
     public static void main(String[] args) {
@@ -34,6 +36,7 @@ public class Main {
                 hadError = true;
             }
             if (hadError) {System.exit(65);}
+            if (hadRuntimeError) {System.exit(70);}
         } else {
             System.out.println("USAGE: use the filename as argument or no arguments to enter REPL.");
             return;
@@ -44,19 +47,23 @@ public class Main {
         lexer = new Lexer(source);
         parser = new Parser();
         printer = new ASTPrinter();
+        interpreter = new Interpreter();
+
         List<Token> tokens = lexer.scanTokens();
         if (hadError) { return; }
         List<Stmt> statements = parser.parse(tokens);
         if (hadError) { return; }
-        for (Stmt stmt : statements) {
-            System.out.println("EXLN:: " + printer.print(stmt));
-        }
+        interpreter.interpret(statements);
 
     }
 
     static void error(int line, String message) {
         System.out.printf("EXLN:: [line %d] Error: %s\n", line, message);
         hadError = true;
+    }
+    static void runtimeError(RuntimeError e) {
+        System.out.printf("EXLN:: [line %d] Runtime Error: %s\n", e.token.line, e.message);
+        hadRuntimeError = true;
     }
 
     static void error(Token token, String message) {
