@@ -287,11 +287,9 @@ public class Parser {
         consume(TokenType.LEFT_BRACE, "Expect '{' for enum declaration.");
 
         List<Token> members = new ArrayList<>();
-        if (check(TokenType.RIGHT_BRACE)) {
-            do {
-                members.add(consume(TokenType.IDENTIFIER, "Expect enum member name."));
-            } while (match(TokenType.COMMA));
-        }
+        do {
+            members.add(consume(TokenType.IDENTIFIER, "Expect enum member name."));
+        } while (match(TokenType.COMMA));
 
         consume(TokenType.RIGHT_BRACE, "Expect '}' after enum declaration.");
         return new Stmt.Enum(name, members);
@@ -326,7 +324,10 @@ public class Parser {
         List<Stmt> statements = new ArrayList<>();
 
         while (!check(TokenType.RIGHT_BRACE) && !isAtEnd()) {
-            statements.add(declaration());
+            Stmt declr = declaration();
+            if (declr != null) {
+                statements.add(declr);
+            }
         }
 
         consume(TokenType.RIGHT_BRACE, "Expect '}' after block.");

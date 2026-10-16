@@ -45,6 +45,7 @@ public class Main {
         parser = new Parser();
         printer = new ASTPrinter();
         List<Token> tokens = lexer.scanTokens();
+        if (hadError) { return; }
         List<Stmt> statements = parser.parse(tokens);
         if (hadError) { return; }
         for (Stmt stmt : statements) {
