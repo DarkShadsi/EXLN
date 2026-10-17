@@ -4,6 +4,7 @@ import java.util.List;
 
 public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
+    private Environment environment = new Environment();
     public void interpret(List<Stmt> statements) {
         try {
             for (Stmt statement : statements) {
@@ -106,11 +107,13 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     }
     @Override
     public Object visitAssignExpr(Expr.Assign expr) {
-        return null;
+        Object value = evaluate(expr.value);
+        environment.assign(expr.name, value);
+        return value;
     }
     @Override
     public Object visitVariableExpr(Expr.Variable expr) {
-        return null;
+        return environment.get(expr.name);
     }
     @Override
     public Object visitCallExpr(Expr.Call expr) {
@@ -148,6 +151,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     // STATEMENTS
     @Override
     public Void visitBlockStmt(Stmt.Block stmt) {
+        executeBlock(stmt.statements, new Environment(environment));
         return null;
     }
     @Override
@@ -164,30 +168,75 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     }
     @Override
     public Void visitVarStmt(Stmt.Var stmt) {
+        Object value = null;
+        if (stmt.initializer != null) {
+            value = evaluate(stmt.initializer);
+        }
+        environment.define(stmt.name.lexeme, value);
         return null;
     }
     @Override
     public Void visitIfStmt(Stmt.If stmt) {
+        Object condition = evaluate(stmt.condition);
+        if (isTruthy(condition)) {
+            execute(stmt.thenBranch);
+        } else if (stmt.elseBranch != null) {
+            execute(stmt.elseBranch);
+        }
         return null;
     }
     @Override
     public Void visitWhileStmt(Stmt.While stmt) {
+        while (isTruthy(evaluate(stmt.condition))) {
+            try {
+                execute(stmt.body);
+            } catch (BreakException e) {
+                return null;
+            } catch (ContinueException _) {
+            }
+            if (stmt.increment != null) execute(stmt.increment);
+        }
         return null;
     }
     @Override
     public Void visitDoWhileStmt(Stmt.DoWhile stmt) {
+        do {
+            try {
+                execute(stmt.body);
+            } catch (BreakException e) {
+                return null;
+            } catch (ContinueException _) {}
+        } while (isTruthy(evaluate(stmt.condition)));
         return null;
     }
     @Override
     public Void visitBreakStmt(Stmt.Break stmt) {
-        return null;
+        throw new BreakException();
     }
     @Override
     public Void visitContinueStmt(Stmt.Continue stmt) {
-        return null;
+        throw new ContinueException();
     }
     @Override
     public Void visitSwitchStmt(Stmt.Switch stmt) {
+        Object subject = evaluate(stmt.subject);
+        int i = 0;
+        for (Expr caseValue: stmt.caseValues) {
+            Object value = evaluate(caseValue);
+            if (isEqual(subject, value)) {
+                for (Stmt body: stmt.caseBodies.get(i)) {
+                    execute(body);
+                }
+                return null;
+            }
+            i++;
+        }
+
+        if (stmt.defaultBody != null) {
+            for (Stmt body: stmt.defaultBody) {
+                execute(body);
+            }
+        }
         return null;
     }
     @Override
@@ -230,8 +279,19 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         if (value == null) return "null";
         if (value instanceof Double) {
             double  d = (double) value;
-            if (d % 1 == 0) return String.valueOf((long) d);;
+            if (d % 1 == 0) return String.valueOf((long) d);
         }
         return value.toString();
+    }
+    private void executeBlock(List<Stmt> statements, Environment newEnv) {
+        Environment current = this.environment;
+        environment = newEnv;
+        try {
+            for (Stmt statement : statements) {
+                execute(statement);
+            }
+        } finally {
+            environment = current;
+        }
     }
 }
