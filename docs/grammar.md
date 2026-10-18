@@ -133,7 +133,19 @@ Enum values support only `==` and `!=`. Arithmetic on an enum is a runtime error
 - `break` and `continue` affect only the innermost enclosing loop, and are errors outside a loop.
 - No `goto`.
 
-## 8. Still to define
+## 8. Functions
+
+No grammar change: the `funDecl`, `function`, and `parameters` rules above already cover everything here.
+
+- **Overloading by parameter count.** Several functions may share a name in the same scope if they take different numbers of parameters. A call picks the function whose parameter count equals the number of arguments.
+    - Declaring the same name with the same parameter count in the same scope is an error.
+    - A call with no matching parameter count is a runtime error ("No overload of 'name' takes N arguments.").
+    - EXLN is dynamically typed, so overloads cannot differ by parameter type.
+- **Parameter passing.** All arguments are passed by value. Primitives (Number, String, Boolean, null, enum) are copied. Arrays and class instances pass a copy of the reference, so a function can change the caller's object through it, but reassigning the parameter does not affect the caller. There is no `ref` keyword.
+- **Return.** `return value;` exits the function with the value. Without a value, or without `return`, the result is `null`.
+- **Scope.** Functions are closures and use static (lexical) scoping.
+
+## 9. Still to define
 
 - Class declaration details (the current class and function rules are a Lox-based proposal)
 - Further built-ins
