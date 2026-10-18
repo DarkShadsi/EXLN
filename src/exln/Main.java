@@ -62,7 +62,11 @@ public class Main {
         hadError = true;
     }
     static void runtimeError(RuntimeError e) {
-        System.out.printf("EXLN:: [line %d] Runtime Error: %s\n", e.token.line, e.message);
+        if (e.token != null) {
+            System.out.printf("EXLN:: [line %d] Runtime Error: %s\n", e.token.line, e.message);
+        } else {
+            System.out.printf("EXLN:: Runtime Error: %s\n", e.message);
+        }
         hadRuntimeError = true;
     }
 

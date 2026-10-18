@@ -1,17 +1,76 @@
 package exln;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
     private Environment environment = new Environment();
+    public Interpreter() {
+        environment.define("toNumber", new ExlnCallable() {
+            @Override
+            public int arity() {
+                return 1;
+            }
+            @Override
+            public Object call(Interpreter interpreter, List<Object> arguments, Token paren) {
+                Object x = arguments.getFirst();
+
+                if (x instanceof Number) {
+                    return x;
+                } else if (x instanceof Boolean) {
+                    return ((Boolean) x) ? 1.0 : 0.0;
+                } else if (x instanceof String) {
+                    String str = ((String) x).trim();
+                    if (!str.matches("-?[0-9]+(\\.[0-9]+)?")) {
+                        throw new RuntimeError(paren, "Non-numeric string cannot be parsed to a number.");
+                    }
+                    try {
+                        return Double.parseDouble(str);
+                    } catch (NumberFormatException e) {
+                        throw new RuntimeError(paren, "Non-numeric string cannot be parsed to a number.");
+                    }
+                }
+                throw new RuntimeError(paren, "Argument to toNumber() must be a Number, String, or Boolean.");
+            }
+        });
+        environment.define("toString", new ExlnCallable() {
+            @Override
+            public int arity() {
+                return 1;
+            }
+            @Override
+            public Object call(Interpreter interpreter, List<Object> arguments, Token paren) {
+                return stringify(arguments.getFirst());
+            }
+        });
+        environment.define("toBoolean", new ExlnCallable() {
+            @Override
+            public int arity() {
+                return 1;
+            }
+            @Override
+            public Object call(Interpreter interpreter, List<Object> arguments, Token paren) {
+                Object x = arguments.getFirst();
+
+                if (x instanceof Double) {
+                    double val = (double) x;
+                    return val != 0.0;
+                }
+                throw new RuntimeError(paren, "Argument to toBoolean() must be a Number.");
+            }
+        });
+    }
     public void interpret(List<Stmt> statements) {
+
         try {
             for (Stmt statement : statements) {
                 execute(statement);
             }
         } catch (RuntimeError error) {
             Main.runtimeError(error);
+        } catch (StackOverflowError error) {
+            Main.runtimeError(new RuntimeError(null, "Stack overflow."));
         }
     }
     private void execute(Stmt stmt) {
@@ -117,7 +176,28 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     }
     @Override
     public Object visitCallExpr(Expr.Call expr) {
-        return null;
+        Object callee = evaluate(expr.callee);
+        List<Object> arguments = new ArrayList<>();
+        for (Expr arg : expr.arguments) {
+            arguments.add(evaluate(arg));
+        }
+
+        ExlnCallable function;
+        if (callee instanceof OverloadSet set) {
+            function = set.find(arguments.size());
+            if (function == null) {
+                throw new RuntimeError(expr.paren, "No overload of '" + set.name + "' takes " + arguments.size() + " arguments.");
+            }
+        } else if (callee instanceof ExlnCallable) {
+            function = (ExlnCallable) callee;
+            if (arguments.size() != function.arity()) {
+                throw new RuntimeError(expr.paren, "Expected " + function.arity() + " arguments but got " + arguments.size() + ".");
+            }
+        } else {
+            throw new RuntimeError(expr.paren, "Can only call functions.");
+        }
+
+        return function.call(this, arguments, expr.paren);
     }
     @Override
     public Object visitGetExpr(Expr.Get expr) {
@@ -241,11 +321,27 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     }
     @Override
     public Void visitFunctionStmt(Stmt.Function stmt) {
+        ExlnFunction func = new ExlnFunction(stmt, environment);
+        Object existing = environment.getLocal(stmt.name.lexeme);
+        if (existing instanceof OverloadSet) {
+            boolean added = ((OverloadSet) existing).add(func);
+            if (!added) {
+                throw new RuntimeError(stmt.name, "Function '" + stmt.name.lexeme + "' with " + stmt.params.size() + " parameters is already defined.");
+            }
+        } else {
+            OverloadSet set = new OverloadSet(stmt.name.lexeme);
+            set.add(func);
+            environment.define(stmt.name.lexeme, set);
+        }
         return null;
     }
     @Override
     public Void visitReturnStmt(Stmt.Return stmt) {
-        return null;
+        Object value = null;
+        if (stmt.value != null) {
+            value = evaluate(stmt.value);
+        }
+        throw new ReturnException(value);
     }
     @Override
     public Void visitClassStmt(Stmt.Class stmt) {
@@ -283,7 +379,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         }
         return value.toString();
     }
-    private void executeBlock(List<Stmt> statements, Environment newEnv) {
+    void executeBlock(List<Stmt> statements, Environment newEnv) {
         Environment current = this.environment;
         environment = newEnv;
         try {

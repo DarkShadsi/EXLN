@@ -36,4 +36,10 @@ public class Environment {
         }
         throw new RuntimeError(name, "Undefined variable '" + name.lexeme + "'.");
     }
+    public Object getLocal(String name) {
+        if (values.containsKey(name)) {
+            return values.get(name);
+        }
+        return null;
+    }
 }
