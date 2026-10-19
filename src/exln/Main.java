@@ -9,14 +9,17 @@ import java.util.Scanner;
 public class Main {
     static boolean hadError;
     static boolean hadRuntimeError;
-    Lexer lexer;
-    Parser parser;
-    Interpreter interpreter;
-    ASTPrinter printer;
+    static Lexer lexer;
+    static Parser parser;
+    static Interpreter interpreter;
+    static ASTPrinter printer;
+    static Resolver resolver;
 
     public static void main(String[] args) {
         Main main = new Main();
         Scanner scanner = new Scanner(System.in);
+
+        interpreter = new Interpreter();
 
         if (args.length == 0) {
             while(true) {
@@ -25,6 +28,7 @@ public class Main {
                 if (line.equals("exit") || line.equals("quit") || line.equals("q")) break;
                 main.run(line);
                 hadError = false;
+                hadRuntimeError = false;
             }
         } else if (args.length == 1) {
             Path path = Path.of(args[0]);
@@ -47,11 +51,13 @@ public class Main {
         lexer = new Lexer(source);
         parser = new Parser();
         printer = new ASTPrinter();
-        interpreter = new Interpreter();
+        resolver = new Resolver(interpreter);
 
         List<Token> tokens = lexer.scanTokens();
         if (hadError) { return; }
         List<Stmt> statements = parser.parse(tokens);
+        if (hadError) { return; }
+        resolver.resolve(statements);
         if (hadError) { return; }
         interpreter.interpret(statements);
 

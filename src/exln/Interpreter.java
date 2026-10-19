@@ -1,13 +1,18 @@
 package exln;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
-    private Environment environment = new Environment();
+    private final Environment globals = new Environment();
+    private Environment environment = globals;
+    private Map<Expr,Integer> locals = new HashMap<Expr,Integer>();
+
     public Interpreter() {
-        environment.define("toNumber", new ExlnCallable() {
+        globals.define("toNumber", new ExlnCallable() {
             @Override
             public int arity() {
                 return 1;
@@ -34,7 +39,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
                 throw new RuntimeError(paren, "Argument to toNumber() must be a Number, String, or Boolean.");
             }
         });
-        environment.define("toString", new ExlnCallable() {
+        globals.define("toString", new ExlnCallable() {
             @Override
             public int arity() {
                 return 1;
@@ -44,7 +49,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
                 return stringify(arguments.getFirst());
             }
         });
-        environment.define("toBoolean", new ExlnCallable() {
+        globals.define("toBoolean", new ExlnCallable() {
             @Override
             public int arity() {
                 return 1;
@@ -62,7 +67,6 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         });
     }
     public void interpret(List<Stmt> statements) {
-
         try {
             for (Stmt statement : statements) {
                 execute(statement);
@@ -167,12 +171,17 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     @Override
     public Object visitAssignExpr(Expr.Assign expr) {
         Object value = evaluate(expr.value);
-        environment.assign(expr.name, value);
+        Integer distance = locals.get(expr);
+        if (distance != null) {
+            environment.assignAt(distance, expr.name, value);
+        } else {
+            globals.assign(expr.name, value);
+        }
         return value;
     }
     @Override
     public Object visitVariableExpr(Expr.Variable expr) {
-        return environment.get(expr.name);
+        return lookUpVariable(expr.name, expr);
     }
     @Override
     public Object visitCallExpr(Expr.Call expr) {
@@ -389,5 +398,14 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         } finally {
             environment = current;
         }
+    }
+    void resolve(Expr expr, int depth) {
+        locals.put(expr, depth);
+    }
+    private Object lookUpVariable(Token name, Expr expr) {
+        if (locals.containsKey(expr)) {
+            return environment.getAt(locals.get(expr), name.lexeme);
+        }
+        return globals.get(name);
     }
 }
