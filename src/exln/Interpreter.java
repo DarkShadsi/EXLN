@@ -65,6 +65,49 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
                 throw new RuntimeError(paren, "Argument to toBoolean() must be a Number.");
             }
         });
+        globals.define("length", new ExlnCallable() {
+            @Override
+            public int arity() {
+                return 1;
+            }
+
+            @Override
+            public Object call(Interpreter interpreter, List<Object> arguments, Token bracket) {
+                Object x = arguments.getFirst();
+                if (!(x instanceof ExlnArray)) {
+                    throw new RuntimeError(bracket, "Argument must be an array.");
+                }
+                return ((ExlnArray) x).getElements().length;
+            }
+        });
+        globals.define("array", new ExlnCallable() {
+            @Override
+            public int arity() {
+                return 1;
+            }
+
+            @Override
+            public Object call(Interpreter interpreter, List<Object> arguments, Token paren) {
+                Object sizeArg = arguments.getFirst();
+                if (!(sizeArg instanceof Double)) {
+                    throw new RuntimeError(paren, "Array size must be a number.");
+                }
+
+                double dSize = (Double) sizeArg;
+                if (dSize % 1 != 0) {
+                    throw new RuntimeError(paren, "Array size must be a whole number.");
+                }
+
+                if (dSize < 0) {
+                    throw new RuntimeError(paren, "Array size must be non-negative.");
+                }
+
+                int size = (int) dSize;
+                Object[] elements = new Object[size];
+
+                return new ExlnArray(elements);
+            }
+        });
     }
     public void interpret(List<Stmt> statements) {
         try {
@@ -226,15 +269,35 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     }
     @Override
     public Object visitArrayLiteralExpr(Expr.ArrayLiteral expr) {
-        return null;
+        Object[] elements = new  Object[expr.elements.size()];
+
+        for (int i = 0; i < elements.length; i++) {
+            elements[i] = evaluate(expr.elements.get(i));
+        }
+
+        return new ExlnArray(elements);
     }
     @Override
     public Object visitIndexExpr(Expr.Index expr) {
-        return null;
+        Object obj = evaluate(expr.object);
+        if (! (obj instanceof ExlnArray)) {
+            throw new RuntimeError(expr.bracket, "Only arrays can be indexed.");
+        }
+        Object index = evaluate(expr.index);
+        index = checkIndex((ExlnArray) obj, index, expr.bracket);
+        return ((ExlnArray) obj).get((Integer) index);
     }
     @Override
     public Object visitIndexSetExpr(Expr.IndexSet expr) {
-        return null;
+        Object obj = evaluate(expr.object);
+        if (! (obj instanceof ExlnArray)) {
+            throw new RuntimeError(expr.bracket, "Only arrays can be indexed.");
+        }
+        Object index = evaluate(expr.index);
+        index = checkIndex((ExlnArray) obj, index, expr.bracket);
+        Object value = evaluate(expr.value);
+        ((ExlnArray)obj).set((Integer) index, value);
+        return value;
     }
 
     // STATEMENTS
@@ -407,5 +470,21 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
             return environment.getAt(locals.get(expr), name.lexeme);
         }
         return globals.get(name);
+    }
+    private int checkIndex(ExlnArray arr, Object index, Token bracket) {
+        if (!(index instanceof Double)) {
+            throw new RuntimeError(bracket, "Index must be a number.");
+        }
+
+        double dIndex = (Double) index;
+        if (dIndex % 1 != 0) {
+            throw new RuntimeError(bracket, "Array index must be a whole number.");
+        }
+
+        int intIndex = (int) dIndex;
+        if (intIndex < 0 || intIndex >= arr.size()) {
+            throw new RuntimeError(bracket, "Array index out of bounds.");
+        }
+        return intIndex;
     }
 }
