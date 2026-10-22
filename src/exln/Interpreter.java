@@ -1,9 +1,6 @@
 package exln;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
@@ -77,7 +74,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
                 if (!(x instanceof ExlnArray)) {
                     throw new RuntimeError(bracket, "Argument must be an array.");
                 }
-                return ((ExlnArray) x).getElements().length;
+                return (double) ((ExlnArray) x).getElements().length;
             }
         });
         globals.define("array", new ExlnCallable() {
@@ -253,11 +250,52 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     }
     @Override
     public Object visitGetExpr(Expr.Get expr) {
-        return null;
+        Object object = evaluate(expr.object);
+
+        if (object instanceof ExlnEnum enumObj) {
+            if (expr.name.lexeme.equals("values")) {
+                return new ExlnCallable() {
+                    @Override
+                    public int arity() {
+                        return 0;
+                    }
+
+                    @Override
+                    public Object call(Interpreter interpreter, List<Object> arguments, Token paren) {
+                        return new ExlnArray(enumObj.members.toArray(new Object[0]));
+                    }
+                };
+            }
+            if (enumObj.memberMap.containsKey(expr.name.lexeme)) {
+                return enumObj.memberMap.get(expr.name.lexeme);
+            }
+            throw new RuntimeError(expr.name, "Enum '" + enumObj.name + "' has no member '" + expr.name.lexeme + "'.");
+        }
+        if (object instanceof ExlnEnumValue exlnEnumValue) {
+            if (expr.name.lexeme.equals("order")) {
+                return new ExlnCallable() {
+                    @Override
+                    public int arity() {
+                        return 0;
+                    }
+
+                    @Override
+                    public Object call(Interpreter interpreter, List<Object> arguments, Token paren) {
+                        return (double) exlnEnumValue.ordinal;
+                    }
+                };
+            }
+            throw new RuntimeError(expr.name, "Enum value '" + exlnEnumValue + "' has no property '" + expr.name.lexeme + "'.");
+        }
+        throw new RuntimeError(expr.name, "Only enums and instances have properties.");
     }
     @Override
     public Object visitSetExpr(Expr.Set expr) {
-        return null;
+        Object object = evaluate(expr.object);
+        if (object instanceof ExlnEnum || object instanceof ExlnEnumValue) {
+            throw new RuntimeError(expr.name, "Cannot assign to enum members.");
+        }
+        throw new RuntimeError(expr.name, "Placeholder error.");
     }
     @Override
     public Object visitThisExpr(Expr.This expr) {
@@ -421,6 +459,19 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     }
     @Override
     public Void visitEnumStmt(Stmt.Enum stmt) {
+        ExlnEnum enumObj = new ExlnEnum(stmt.name.lexeme);
+
+        for (int i = 0; i < stmt.members.size(); i++) {
+            Token token = stmt.members.get(i);
+            if (token.lexeme.equals("values")) {
+                throw new RuntimeError(token, "Enum '" + stmt.name.lexeme + "' cannot have a member named 'values'.");
+            }
+            ExlnEnumValue member = new ExlnEnumValue(enumObj, token.lexeme, i);
+            if (!enumObj.addMember(member)) {
+                throw new RuntimeError(token, "Duplicate enum member '" + token.lexeme + "'.");
+            }
+        }
+        environment.define(stmt.name.lexeme, enumObj);
         return null;
     }
 
@@ -446,8 +497,20 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     private String stringify (Object value) {
         if (value == null) return "null";
         if (value instanceof Double) {
-            double  d = (double) value;
+            double d = (double) value;
             if (d % 1 == 0) return String.valueOf((long) d);
+        }
+        if (value instanceof ExlnArray) {
+            Object[] elements = ((ExlnArray) value).getElements();
+            StringBuilder sb = new StringBuilder("[");
+            for (int i = 0; i < elements.length; i++) {
+                sb.append(stringify(elements[i]));
+                if (i < elements.length - 1) {
+                    sb.append(", ");
+                }
+            }
+            sb.append("]");
+            return sb.toString();
         }
         return value.toString();
     }
