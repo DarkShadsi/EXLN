@@ -8,11 +8,10 @@ import java.util.Stack;
 public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     Interpreter interpreter;
     Stack<Map<String, Boolean>> scopes = new Stack<>();
-    private enum FunctionType {
-        NONE,
-        FUNCTION
-    }
+    private enum FunctionType { NONE, FUNCTION, METHOD, INITIALIZER }
+    private enum ClassType { NONE, CLASS, SUBCLASS }
     private FunctionType currentFunction = FunctionType.NONE;
+    private ClassType currentClass = ClassType.NONE;
 
     public Resolver(Interpreter interpreter) {
         this.interpreter = interpreter;
@@ -80,10 +79,21 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     }
     @Override
     public Void visitThisExpr(Expr.This expr) {
+        if (currentClass == ClassType.NONE) {
+            Main.error(expr.keyword, "Can't use 'this' outside of a class.");
+            return null;
+        }
+        resolveLocal(expr, expr.keyword);
         return null;
     }
     @Override
     public Void visitSuperExpr(Expr.Super expr) {
+        if (currentClass == ClassType.NONE) {
+            Main.error(expr.keyword, "Can't use 'super' outside of a class.");
+        } else if (currentClass != ClassType.SUBCLASS) {
+            Main.error(expr.keyword, "Can't use 'super' in a class with no superclass.");
+        }
+        resolveLocal(expr, expr.keyword);
         return null;
     }
     @Override
@@ -185,18 +195,20 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     public Void visitFunctionStmt(Stmt.Function stmt) {
         declare(stmt.name, true);
         define(stmt.name);
-
+        resolveFunction(stmt, FunctionType.FUNCTION);
+        return null;
+    }
+    private void resolveFunction(Stmt.Function function, FunctionType type) {
         FunctionType enclosingFunction = currentFunction;
-        currentFunction = FunctionType.FUNCTION;
+        currentFunction = type;
         beginScope();
-        for (Token param : stmt.params) {
+        for (Token param : function.params) {
             declare(param);
             define(param);
         }
-        resolve(stmt.body);
+        resolve(function.body);
         endScope();
         currentFunction = enclosingFunction;
-        return null;
     }
     @Override
     public Void visitReturnStmt(Stmt.Return stmt) {
@@ -204,6 +216,9 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
             Main.error(stmt.keyword, "Can't return from top-level code.");
         }
         if (stmt.value != null) {
+            if (currentFunction == FunctionType.INITIALIZER) {
+                Main.error(stmt.keyword, "Can't return a value from an initializer.");
+            }
             resolve(stmt.value);
         }
         return null;
@@ -212,6 +227,31 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     public Void visitClassStmt(Stmt.Class stmt) {
         declare(stmt.name);
         define(stmt.name);
+
+        ClassType enclosingClass = currentClass;
+        currentClass = ClassType.CLASS;
+
+        if (stmt.superclass != null) {
+            if (stmt.name.lexeme.equals(stmt.superclass.name.lexeme)) {
+                Main.error(stmt.superclass.name, "A class can't inherit from itself.");
+            }
+            currentClass = ClassType.SUBCLASS;
+            resolve(stmt.superclass);
+            beginScope();
+            scopes.peek().put("super", true);
+        }
+
+        beginScope();
+        scopes.peek().put("this", true);
+
+        for (Stmt.Function method : stmt.methods) {
+            FunctionType type = method.name.lexeme.equals("init") ? FunctionType.INITIALIZER : FunctionType.METHOD;
+            resolveFunction(method, type);
+        }
+
+        endScope();
+        if (stmt.superclass != null) endScope();
+        currentClass = enclosingClass;
         return null;
     }
     @Override

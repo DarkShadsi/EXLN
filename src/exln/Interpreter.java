@@ -232,10 +232,10 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         }
 
         ExlnCallable function;
-        if (callee instanceof OverloadSet set) {
+        if (callee instanceof ExlnOverloaded set) {
             function = set.find(arguments.size());
             if (function == null) {
-                throw new RuntimeError(expr.paren, "No overload of '" + set.name + "' takes " + arguments.size() + " arguments.");
+                throw new RuntimeError(expr.paren, "No overload of '" + set.name() + "' takes " + arguments.size() + " arguments.");
             }
         } else if (callee instanceof ExlnCallable) {
             function = (ExlnCallable) callee;
@@ -251,6 +251,10 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     @Override
     public Object visitGetExpr(Expr.Get expr) {
         Object object = evaluate(expr.object);
+
+        if (object instanceof ExlnInstance instance) {
+            return instance.get(expr.name);
+        }
 
         if (object instanceof ExlnEnum enumObj) {
             if (expr.name.lexeme.equals("values")) {
@@ -295,15 +299,25 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         if (object instanceof ExlnEnum || object instanceof ExlnEnumValue) {
             throw new RuntimeError(expr.name, "Cannot assign to enum members.");
         }
-        throw new RuntimeError(expr.name, "Placeholder error.");
+        if (!(object instanceof ExlnInstance)) {
+            throw new RuntimeError(expr.name, "Only instances have fields.");
+        }
+        Object value = evaluate(expr.value);
+        ((ExlnInstance) object).set(expr.name, value);
+        return value;
     }
     @Override
     public Object visitThisExpr(Expr.This expr) {
-        return null;
+        return lookUpVariable(expr.keyword, expr);
     }
     @Override
     public Object visitSuperExpr(Expr.Super expr) {
-        return null;
+        int distance = locals.get(expr);    // the resolver (9.4) always records this
+        ExlnClass superclass = (ExlnClass) environment.getAt(distance, "super");
+        ExlnInstance instance = (ExlnInstance) environment.getAt(distance - 1, "this");
+        if (!superclass.hasMethod(expr.methodName.lexeme)) throw new RuntimeError(expr.methodName,
+            "Undefined property '" + expr.methodName.lexeme + "'.");
+        return new BoundMethods(instance, superclass, expr.methodName.lexeme);
     }
     @Override
     public Object visitArrayLiteralExpr(Expr.ArrayLiteral expr) {
@@ -455,6 +469,38 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     }
     @Override
     public Void visitClassStmt(Stmt.Class stmt) {
+        ExlnClass superclass = null;
+        if (stmt.superclass != null) {
+            Object value = evaluate(stmt.superclass);
+            if (!(value instanceof ExlnClass)) {
+                throw new RuntimeError(stmt.superclass.name, "Superclass must be a class.");
+            }
+            superclass = (ExlnClass) value;
+        }
+
+        environment.define(stmt.name.lexeme, null);
+        Environment previous = environment;
+        try {
+            if (superclass != null) {
+                environment = new Environment(environment);
+                environment.define("super", superclass);
+            }
+
+            ExlnClass klass = new ExlnClass(stmt.name.lexeme, superclass);
+
+            for (Stmt.Function method : stmt.methods) {
+                boolean isInit = method.name.lexeme.equals("init");
+                ExlnFunction fn = new ExlnFunction(method, environment, isInit);
+                if (!klass.addMethod(method.name.lexeme, fn)) throw new RuntimeError(method.name,
+                "Method '" + method.name.lexeme + "' with " + method.params.size()
+                + " parameters is already defined in class '" + stmt.name.lexeme + "'.");
+            }
+
+            environment = previous;
+            environment.assign(stmt.name, klass);
+        } finally {
+            environment = previous;
+        }
         return null;
     }
     @Override
