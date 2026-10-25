@@ -1,0 +1,5 @@
+   class Animal { speak() { print "..."; } }
+   class Dog < Animal { speak() { print "Woof"; } }
+   class Cat < Animal { speak() { print "Meow"; } }
+   func makeSound(animal) { animal.speak(); }
+   makeSound(Animal()); makeSound(Dog()); makeSound(Cat());
