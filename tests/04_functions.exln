@@ -1,0 +1,62 @@
+// Step 6: functions, return, recursion, closures, overloading, built-ins
+func add(a, b) { return a + b; }
+print add(2, 3);
+
+func hi() { print "hi"; }
+hi();
+
+func f() {}
+print f();
+
+func fact(n) { if (n <= 1) return 1; return n * fact(n - 1); }
+print fact(5);
+
+func fib(n) { if (n < 2) return n; return fib(n - 1) + fib(n - 2); }
+print fib(6);
+
+func count(n) { if (n == 0) return; print n; count(n - 1); }
+count(3);
+
+func make() {
+    var c = 0;
+    func inc() { c = c + 1; return c; }
+    return inc;
+}
+var k = make();
+print k();
+print k();
+
+// overloading by parameter count
+func area(s) { return s * s; }
+func area(w, h) { return w * h; }
+print area(4);
+print area(3, 5);
+var g = area;
+print g(3);
+print add;
+
+func twice(x) { return x + x; }
+print twice(4);
+print twice("ha");
+print twice(2.5);
+
+// an overload in an inner scope does not touch the outer one
+{
+    func area(s) { return 100; }
+    print area(0);
+}
+print area(4);
+
+// built-in conversions
+print toNumber("123") + 1;
+print toNumber("-5");
+print toNumber(true);
+print toString(456) + "!";
+print toBoolean(0);
+print toBoolean(5);
+
+// pass by value
+func addOne(n) { n = n + 1; return n; }
+var x = 5;
+print addOne(x);
+print x;
