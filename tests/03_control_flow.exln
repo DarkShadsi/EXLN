@@ -1,0 +1,38 @@
+// Step 5: if, while, for, do-while, break, continue, switch
+if (0) print "t";
+if (null) print "never";
+if (1 > 2) { print "a"; } else { print "b"; }
+
+var i = 0;
+while (i < 3) { print i; i = i + 1; }
+
+for (var j = 0; j < 5; j = j + 1) { if (j == 2) continue; print j; }
+for (var k = 0; k < 5; k = k + 1) { if (k == 3) break; print k; }
+for (;;) { break; }
+
+// break only leaves the inner loop
+for (var a = 0; a < 2; a = a + 1) {
+    for (var b = 0; b < 3; b = b + 1) {
+        if (b == 1) break;
+        print a + b;
+    }
+}
+
+var x = 10;
+do { print x; x = x + 1; } while (x < 5);
+
+var n = 0;
+do { n = n + 1; if (n == 2) continue; print n; } while (n < 3);
+
+// no fallthrough
+switch (2) { case 1: print "a"; case 2: print "b"; case 3: print "c"; default: print "d"; }
+switch (9) { case 1: print "a"; default: print "d"; }
+switch (9) { case 1: print "a"; }
+
+// break inside a switch leaves the enclosing loop
+for (var m = 0; m < 3; m = m + 1) {
+    switch (m) {
+        case 1: break;
+        default: print m;
+    }
+}
