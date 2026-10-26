@@ -1,0 +1,24 @@
+// Step 7: static (lexical) scoping
+var a = "global";
+{
+    func show() { print a; }
+    show();
+    var a = "block";
+    show();
+}
+
+var b = 1;
+{
+    var b = 2;
+    {
+        print b;
+    }
+}
+print b;
+
+func outer() {
+    var x = "outer";
+    func inner() { return x; }
+    return inner;
+}
+print outer()();
