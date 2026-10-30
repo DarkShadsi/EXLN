@@ -1,0 +1,8 @@
+Expect ';' after variable declaration
+Expect variable name
+must use braces
+'else' body must be a block
+Cannot use 'break' outside of a loop
+Cannot use 'continue' outside of a loop
+Invalid assignment target
+Expect ')' after parameters

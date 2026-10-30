@@ -1,0 +1,42 @@
+// Step 8: arrays
+var a = [1, 2, 3];
+print a[1];
+a[1] = 9;
+print a[1];
+print length(a);
+print length([]);
+
+var s = array(3);
+print s[0];
+s[0] = "x";
+print s[0];
+
+print [1, [2, 3]];
+var g = [[1, 2], [3, 4]];
+print g[1][0];
+g[0][1] = 20;
+print g[0][1];
+
+// arrays are references
+var b = a;
+b[0] = 99;
+print a[0];
+var c = [1, 2];
+var d = [1, 2];
+print c == d;
+print c == c;
+
+// passing an array: changing its contents is visible, reassigning the parameter is not
+func change(arr) { arr[0] = 99; arr = [1]; }
+var n = [5, 6];
+change(n);
+print n[0];
+print length(n);
+
+if ([]) print "t";
+
+var total = 0;
+for (var i = 0; i < length(a); i = i + 1) { total = total + a[i]; }
+print total;
+
+print [1, "x", true, null];

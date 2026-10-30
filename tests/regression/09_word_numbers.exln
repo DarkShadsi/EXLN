@@ -1,0 +1,59 @@
+// ===== Word Numbers Processor (EXLN) =====
+
+// INPUT VARIABLE: a set of word numbers (limited to "thirty")
+var input = ["one", "four", "twenty three"];
+
+// LOOKUP TABLE: the word at index j has the integer value j + 1
+var table = [
+    "one", "two", "three", "four", "five",
+    "six", "seven", "eight", "nine", "ten",
+    "eleven", "twelve", "thirteen", "fourteen", "fifteen",
+    "sixteen", "seventeen", "eighteen", "nineteen", "twenty",
+    "twenty one", "twenty two", "twenty three", "twenty four", "twenty five",
+    "twenty six", "twenty seven", "twenty eight", "twenty nine", "thirty"
+];
+
+// STEP 1: convert each word number into its integer value
+var integers = array(length(input));
+
+for (var i = 0; i < length(input); i = i + 1) {
+    for (var j = 0; j < length(table); j = j + 1) {
+        if (table[j] == input[i]) {
+            integers[i] = j + 1;
+            break;      // match found, stop searching the table
+        }
+    }
+}
+
+// STEP 2: compute the sum and product, and build the strings
+var sum = 0;
+var product = 1;
+var sentence = "";
+var integerList = "";
+
+for (var k = 0; k < length(integers); k = k + 1) {
+    sum = sum + integers[k];
+    product = product * integers[k];
+
+    if (k == 0) {
+        sentence = input[k];
+        integerList = toString(integers[k]);
+    } else {
+        sentence = sentence + " " + input[k];
+        integerList = integerList + " " + toString(integers[k]);
+    }
+}
+
+// STEP 3: OUTPUT VARIABLE is "True" if both the sum and the product are less than 100
+var output;
+if (sum < 100 and product < 100) {
+    output = "True";
+} else {
+    output = "False";
+}
+
+print "Words: " + sentence;
+print "Integers: " + integerList;
+print "Sum: " + toString(sum);
+print "Product: " + toString(product);
+print "Output: " + output;

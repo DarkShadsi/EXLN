@@ -1,0 +1,102 @@
+// Step 9: classes, init, inheritance, super, overloading, polymorphism
+class A {}
+print A;
+var a = A();
+print a;
+a.name = "Al";
+print a.name;
+
+class B { show() { print this.x; } }
+var b = B();
+b.x = 5;
+b.show();
+var m = b.show;
+m();
+
+// init
+class Q { init(n) { this.name = n; } }
+print Q("Bo").name;
+class R { init() { return; } }
+print R().init();
+
+// overloaded constructors and methods
+class V { init() { this.x = 0; } init(x) { this.x = x; } }
+print V().x;
+print V(7).x;
+class S { area(s) { return s * s; } area(w, h) { return w * h; } }
+var sq = S();
+print sq.area(3);
+print sq.area(2, 5);
+
+// inheritance, overriding, super
+class D1 { hi() { print "A"; } }
+class D2 < D1 {}
+D2().hi();
+
+class E1 { hi() { print "A"; } }
+class E2 < E1 { hi() { super.hi(); print "B"; } }
+E2().hi();
+
+class F1 { init(n) { this.n = n; } }
+class F2 < F1 { init(n) { super.init(n); this.m = 1; } }
+var f = F2(5);
+print f.n;
+print f.m;
+
+// a different parameter count adds to the inherited overloads
+class G1 { f(a) { return 1; } }
+class G2 < G1 { f(a, b) { return 2; } }
+var g = G2();
+print g.f(0);
+print g.f(0, 0);
+
+class P1 { init(a) { this.a = a; } }
+class P2 < P1 { init(a, b) { this.a = a; this.b = b; } }
+print P2(1).a;
+print P2(1, 2).b;
+
+// the same parameter count overrides
+class O1 { f(a) { return "parent"; } }
+class O2 < O1 { f(a) { return "child"; } }
+print O2().f(0);
+
+// a field hides a method
+class H { f() { return 1; } }
+var h = H();
+h.f = 2;
+print h.f;
+
+// instances are equal only to themselves
+var x1 = A();
+var x2 = A();
+print x1 == x2;
+print x1 == x1;
+
+// instances are passed by reference
+class Counter {}
+func inc(c) { c.count = c.count + 1; }
+var c = Counter();
+c.count = 0;
+inc(c);
+inc(c);
+print c.count;
+
+// this is captured by closures
+class K { make() { func inner() { return this; } return inner; } }
+var k = K();
+print k.make()() == k;
+
+// super works through a chain
+class C1 { hi() { print "A"; } }
+class C2 < C1 {}
+class C3 < C2 { hi() { super.hi(); } }
+C3().hi();
+
+// polymorphism
+class Animal { speak() { print "..."; } }
+class Dog < Animal { speak() { print "Woof"; } }
+class Cat < Animal { speak() { print "Meow"; } }
+func makeSound(animal) { animal.speak(); }
+makeSound(Animal());
+makeSound(Dog());
+makeSound(Cat());

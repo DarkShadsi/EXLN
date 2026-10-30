@@ -1,0 +1,46 @@
+// Mini-PL Exercise 2: evaluate an expression string from left to right using function calls
+
+// predefined variables
+var x = -2.55;
+var y = 1;
+
+// A: the input string
+var A = "x + 23.55 * y / 4";
+
+// split A into tokens, then evaluate from the leftmost operand to the rightmost
+var tokens = split(A, " ");
+var result = valueOf(tokens[0]);
+for (var i = 1; i < length(tokens); i = i + 2) {
+    result = apply(tokens[i], result, valueOf(tokens[i + 1]));
+}
+
+// convert the result to a string and append the metric unit
+var z = toString(result) + " meters";
+print z;
+
+
+func add(a, b) { return a + b; }
+func subtract(a, b) { return a - b; }
+func multiply(a, b) { return a * b; }
+func divide(a, b) { return a / b; }
+
+// turns one operand token into a number: a variable name or a numeric literal
+func valueOf(token) {
+    switch (token) {
+        case "x": return x;
+        case "y": return y;
+        default: return toNumber(token);
+    }
+}
+
+// calls the function that matches the operator
+func apply(op, left, right) {
+    switch (op) {
+        case "+": return add(left, right);
+        case "-": return subtract(left, right);
+        case "*": return multiply(left, right);
+        case "/": return divide(left, right);
+        default: return null;
+    }
+}
+

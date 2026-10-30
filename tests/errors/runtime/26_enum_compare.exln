@@ -1,0 +1,2 @@
+enum Color { RED, BLUE }
+print Color.RED < Color.BLUE;

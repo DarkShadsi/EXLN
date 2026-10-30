@@ -1,0 +1,10 @@
+var x = 5
+print 1;
+var = 3;
+if (a) print 1; else print 2;
+if (a) { print 1; } else print 2;
+break;
+continue;
+var class = 1;
+1 = 2;
+func f(a { }

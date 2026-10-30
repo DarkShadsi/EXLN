@@ -1,0 +1,37 @@
+// Step 8: enums
+enum Color { RED, GREEN, BLUE }
+enum Size { SMALL, MEDIUM, LARGE }
+
+print Color.GREEN;
+print Color.GREEN.order();
+var all = Color.values();
+print length(all);
+print all[2];
+print Color.RED == Color.RED;
+print Color.RED != Color.BLUE;
+print Color.RED == 0;
+if (Color.RED) print "t";
+
+var c = Color.RED;
+switch (c) {
+    case Color.RED:   print "Stop";
+    case Color.GREEN: print "Go";
+    default:          print "?";
+}
+
+print Color;
+var next = c;
+print next == Color.RED;
+
+for (var i = 0; i < length(all); i = i + 1) {
+    print all[i].order();
+}
+
+// nested loops with break
+var sizes = Size.values();
+for (var s = 0; s < length(sizes); s = s + 1) {
+    for (var k = 0; k < length(all); k = k + 1) {
+        if (all[k] == Color.BLUE) break;
+        print sizes[s].order() * 10 + all[k].order();
+    }
+}

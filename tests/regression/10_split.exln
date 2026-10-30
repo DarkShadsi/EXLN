@@ -1,0 +1,14 @@
+// split(text, separator): pieces between separators, in order. Empty pieces are kept.
+var t = split("a b c", " ");
+print length(t);
+print t[0];
+print t[2];
+
+var u = split("a,,b", ",");
+print length(u);
+print u[1] == "";
+
+print length(split("abc", " "));
+print split("1 + 2", " ");
+print length(split("", " "));
+print split("a--b--c", "--");

@@ -1,0 +1,3 @@
+class P {}
+var p = P();
+print p.age;

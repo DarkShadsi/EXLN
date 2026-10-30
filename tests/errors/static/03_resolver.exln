@@ -1,0 +1,8 @@
+return 1;
+{ var a = a; }
+{ var b = 1; var b = 2; }
+print this;
+super.f();
+class A { f() { super.f(); } }
+class B { init() { return 1; } }
+class C < C {}

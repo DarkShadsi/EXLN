@@ -1,0 +1,8 @@
+Can't return from top-level code
+in its own
+Already a variable with this name
+Can't use 'this' outside of a class
+Can't use 'super' outside of a class
+no superclass
+Can't return a value from an initializer
+can't inherit from itself
