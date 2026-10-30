@@ -182,3 +182,24 @@ if (node.next != null) print "Has next";
 var pupil = Student();
 pupil.name = "Bob";
 pupil.greet();
+
+// ===== array(size), overloading, init =====
+var slots = array(2);
+slots[0] = "a";
+slots[1] = "b";
+print slots[0] + slots[1];
+
+func area(side) { return side * side; }
+func area(width, height) { return width * height; }
+print area(4);
+print area(3, 5);
+
+class Point {
+    init(x, y) {
+        this.x = x;
+        this.y = y;
+    }
+    sum() { return this.x + this.y; }
+}
+var pt = Point(1, 2);
+print pt.sum();
