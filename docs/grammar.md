@@ -122,6 +122,7 @@ Enum values support only `==` and `!=`. Arithmetic on an enum is a runtime error
 | `toBoolean(x)` | Number to Boolean (`0` = `false`, otherwise `true`). Any other type is a runtime error |
 | `length(arr)` | Number of elements in an array. Any other type is a runtime error |
 | `array(size)` | New array with `size` slots, each `null`. `size` must be a non-negative whole Number, otherwise a runtime error |
+| `split(text, separator)` | Array of the Strings found between the separators, in order. Both arguments must be Strings and the separator must not be empty, otherwise a runtime error. Empty pieces are kept: `split("a,,b", ",")` is `[a, , b]`, and `split("abc", " ")` is `[abc]` |
 | `Enum.values()` | Array of all members of the enum, in order |
 | `member.order()` | Zero-based position of an enum member |
 

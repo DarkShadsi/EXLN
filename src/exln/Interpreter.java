@@ -105,6 +105,38 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
                 return new ExlnArray(elements);
             }
         });
+        globals.define("split", new ExlnCallable() {
+            @Override
+            public int arity() {
+                return 2;
+            }
+
+            @Override
+            public Object call(Interpreter interpreter, List<Object> arguments, Token paren) {
+                Object text = arguments.get(0);
+                Object separator = arguments.get(1);
+                if (!(text instanceof String) || !(separator instanceof String)) {
+                    throw new RuntimeError(paren, "split() needs two strings.");
+                }
+
+                String s = (String) text;
+                String sep = (String) separator;
+                if (sep.isEmpty()) {
+                    throw new RuntimeError(paren, "Separator must not be empty.");
+                }
+
+                List<Object> parts = new ArrayList<>();
+                int start = 0;
+                int found;
+                while ((found = s.indexOf(sep, start)) != -1) {
+                    parts.add(s.substring(start, found));
+                    start = found + sep.length();
+                }
+                parts.add(s.substring(start));
+
+                return new ExlnArray(parts.toArray());
+            }
+        });
     }
     public void interpret(List<Stmt> statements) {
         try {
