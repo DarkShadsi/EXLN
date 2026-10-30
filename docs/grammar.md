@@ -146,6 +146,7 @@ No grammar change: the `funDecl`, `function`, and `parameters` rules above alrea
 - **Parameter passing.** All arguments are passed by value. Primitives (Number, String, Boolean, null, enum) are copied. Arrays and class instances pass a copy of the reference, so a function can change the caller's object through it, but reassigning the parameter does not affect the caller. There is no `ref` keyword.
 - **Return.** `return value;` exits the function with the value. Without a value, or without `return`, the result is `null`.
 - **Scope.** Functions are closures and use static (lexical) scoping.
+- **Declaration order.** A function can be called from anywhere in its scope, before or after its declaration, as in Java. All `func` declarations in a scope (the program, a block, or a function body) are defined when that scope starts. Mutual recursion works at any level. Variables are **not** hoisted: reading a `var` before its declaration line is an error ("Undefined variable 'x'.").
 
 ## 9. Classes
 
