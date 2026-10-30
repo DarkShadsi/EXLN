@@ -57,3 +57,4 @@ print "Integers: " + integerList;
 print "Sum: " + toString(sum);
 print "Product: " + toString(product);
 print "Output: " + output;
+print "========= PROGRAM FINISHED ======================="
