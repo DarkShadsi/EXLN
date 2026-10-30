@@ -140,6 +140,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     }
     public void interpret(List<Stmt> statements) {
         try {
+            hoistFunctions(statements);
             for (Stmt statement : statements) {
                 execute(statement);
             }
@@ -477,18 +478,6 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     }
     @Override
     public Void visitFunctionStmt(Stmt.Function stmt) {
-        ExlnFunction func = new ExlnFunction(stmt, environment);
-        Object existing = environment.getLocal(stmt.name.lexeme);
-        if (existing instanceof OverloadSet) {
-            boolean added = ((OverloadSet) existing).add(func);
-            if (!added) {
-                throw new RuntimeError(stmt.name, "Function '" + stmt.name.lexeme + "' with " + stmt.params.size() + " parameters is already defined.");
-            }
-        } else {
-            OverloadSet set = new OverloadSet(stmt.name.lexeme);
-            set.add(func);
-            environment.define(stmt.name.lexeme, set);
-        }
         return null;
     }
     @Override
@@ -596,11 +585,33 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         Environment current = this.environment;
         environment = newEnv;
         try {
+            hoistFunctions(statements);
             for (Stmt statement : statements) {
                 execute(statement);
             }
         } finally {
             environment = current;
+        }
+    }
+    private void hoistFunctions(List<Stmt> statements) {
+        for (Stmt statement : statements) {
+            if (statement instanceof Stmt.Function function) {
+                defineFunction(function);
+            }
+        }
+    }
+    private void defineFunction(Stmt.Function stmt) {
+        ExlnFunction func = new ExlnFunction(stmt, environment);
+        Object existing = environment.getLocal(stmt.name.lexeme);
+        if (existing instanceof OverloadSet) {
+            boolean added = ((OverloadSet) existing).add(func);
+            if (!added) {
+                throw new RuntimeError(stmt.name, "Function '" + stmt.name.lexeme + "' with " + stmt.params.size() + " parameters is already defined.");
+            }
+        } else {
+            OverloadSet set = new OverloadSet(stmt.name.lexeme);
+            set.add(func);
+            environment.define(stmt.name.lexeme, set);
         }
     }
     void resolve(Expr expr, int depth) {

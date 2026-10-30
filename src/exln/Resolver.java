@@ -120,6 +120,7 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     @Override
     public Void visitBlockStmt(Stmt.Block stmt) {
         beginScope();
+        hoistFunctions(stmt.statements);
         for (Stmt statement: stmt.statements) {
             resolve(statement);
         }
@@ -206,6 +207,7 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
             declare(param);
             define(param);
         }
+        hoistFunctions(function.body);
         resolve(function.body);
         endScope();
         currentFunction = enclosingFunction;
@@ -300,6 +302,14 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
                 int distance = scopes.size() - 1 - i;
                 interpreter.resolve(expr, distance);
                 return;
+            }
+        }
+    }
+    private void hoistFunctions(List<Stmt> statements) {
+        for (Stmt statement : statements) {
+            if (statement instanceof Stmt.Function function) {
+                declare(function.name, true);
+                define(function.name);
             }
         }
     }
