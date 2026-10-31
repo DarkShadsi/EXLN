@@ -1,1 +1,1 @@
-print toNumber("abc");
+println toNumber("abc");

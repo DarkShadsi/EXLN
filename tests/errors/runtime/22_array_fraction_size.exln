@@ -1,1 +1,1 @@
-print array(2.5);
+println array(2.5);

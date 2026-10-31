@@ -1,1 +1,1 @@
-print toBoolean("x");
+println toBoolean("x");

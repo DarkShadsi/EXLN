@@ -1,1 +1,1 @@
-print length(5);
+println length(5);

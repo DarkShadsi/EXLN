@@ -1,1 +1,1 @@
-print array(-1);
+println array(-1);

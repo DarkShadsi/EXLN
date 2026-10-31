@@ -1,1 +1,1 @@
-print "age: " + 25;
+println "age: " + 25;

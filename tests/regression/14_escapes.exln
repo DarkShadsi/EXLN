@@ -1,0 +1,8 @@
+// escape sequences inside strings: \n \t \" \\
+println "tab:\there";
+println "quote: \"hi\"";
+println "back\\slash";
+println "line1\nline2";
+print "no newline";
+print "\n";
+println "x" + "\ty";

@@ -1,0 +1,40 @@
+// Functions can be called from anywhere in their scope, before or after the declaration.
+
+// called before its declaration
+println early();
+func early() { return "ok"; }
+
+// a function that calls one declared below it
+func first() { return second() + 1; }
+func second() { return 41; }
+println first();
+
+// mutual recursion at the top level
+println isEven(4);
+func isEven(n) { if (n == 0) return true; return isOdd(n - 1); }
+func isOdd(n) { if (n == 0) return false; return isEven(n - 1); }
+
+// mutual recursion and use before the declaration inside a block
+{
+    println isEven2(5);
+    func isEven2(n) { if (n == 0) return true; return isOdd2(n - 1); }
+    func isOdd2(n) { if (n == 0) return false; return isEven2(n - 1); }
+}
+
+// inside a function body
+func outer() {
+    return helper(3);
+    func helper(n) { return n * 2; }
+}
+println outer();
+
+// overloads declared after the calls
+println area(2);
+println area(2, 3);
+func area(s) { return s * s; }
+func area(w, h) { return w * h; }
+
+// a method that calls a function declared below the class
+class Greeter { greet() { return name(); } }
+func name() { return "Al"; }
+println Greeter().greet();

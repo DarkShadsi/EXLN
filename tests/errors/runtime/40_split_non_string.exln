@@ -1,1 +1,1 @@
-print split(1, " ");
+println split(1, " ");

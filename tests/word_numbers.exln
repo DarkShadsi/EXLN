@@ -52,9 +52,8 @@ if (sum < 100 and product < 100) {
     output = "False";
 }
 
-print "Words: " + sentence;
-print "Integers: " + integerList;
-print "Sum: " + toString(sum);
-print "Product: " + toString(product);
-print "Output: " + output;
-print "========= PROGRAM FINISHED ======================="
+println "Words: " + sentence;
+println "Integers: " + integerList;
+println "Sum: " + toString(sum);
+println "Product: " + toString(product);
+println "Output: " + output;

@@ -1,1 +1,1 @@
-print toNumber("12f");
+println toNumber("12f");

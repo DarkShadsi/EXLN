@@ -1,0 +1,9 @@
+// print keeps the cursor on the same line; println ends the line; "println;" is a blank line
+print "a";
+print "b";
+println "c";
+println;
+println "d";
+print 1 + 2;
+print " ";
+println true;

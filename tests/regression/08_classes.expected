@@ -1,30 +1,30 @@
-EXLN:: <class A>
-EXLN:: A instance
-EXLN:: Al
-EXLN:: 5
-EXLN:: 5
-EXLN:: Bo
-EXLN:: R instance
-EXLN:: 0
-EXLN:: 7
-EXLN:: 9
-EXLN:: 10
-EXLN:: A
-EXLN:: A
-EXLN:: B
-EXLN:: 5
-EXLN:: 1
-EXLN:: 1
-EXLN:: 2
-EXLN:: 1
-EXLN:: 2
-EXLN:: child
-EXLN:: 2
-EXLN:: false
-EXLN:: true
-EXLN:: 2
-EXLN:: true
-EXLN:: A
-EXLN:: ...
-EXLN:: Woof
-EXLN:: Meow
+<class A>
+A instance
+Al
+5
+5
+Bo
+R instance
+0
+7
+9
+10
+A
+A
+B
+5
+1
+1
+2
+1
+2
+child
+2
+false
+true
+2
+true
+A
+...
+Woof
+Meow

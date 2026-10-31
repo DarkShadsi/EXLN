@@ -13,12 +13,12 @@ var greeting = "Hello" + ", World!";
 var check = (count >= 5) and !(price < 1);
 var same = count == 10;
 var diff = name != "Other";
-print sum * 2 / 4 - 1;
+println sum * 2 / 4 - 1;
 
 // ===== Truthiness =====
-if (0) print "0 is truthy";
-if ("") print "empty string is truthy";
-if (nothing) print "never printed";
+if (0) println "0 is truthy";
+if ("") println "empty string is truthy";
+if (nothing) println "never printed";
 
 // ===== Conversions =====
 var n = toNumber("123");
@@ -28,24 +28,24 @@ var z = toNumber(true);
 
 // ===== Two-way selection =====
 var age = 20;
-if (age >= 18) print "Adult";
+if (age >= 18) println "Adult";
 
 var score = 70;
 if (score >= 75) {
-    print "Passed";
+    println "Passed";
 }
 else {
-    print "Failed";
+    println "Failed";
 }
 
 if (score >= 90) {
-    print "A";
+    println "A";
 }
 else if (score >= 70) {
-    print "B";
+    println "B";
 }
 else {
-    print "C";
+    println "C";
 }
 
 // ===== Enums =====
@@ -53,35 +53,35 @@ enum Color { RED, GREEN, BLUE }
 enum Size { SMALL, MEDIUM, LARGE }
 var c = Color.GREEN;
 var nextColor = c;
-if (c == Color.GREEN) print "Go";
+if (c == Color.GREEN) println "Go";
 var isRed = (c != Color.RED);
-print c.order();
+println c.order();
 
 // ===== N-way selection =====
 switch (c) {
-    case Color.RED:   print "Stop";
-    case Color.GREEN: print "Go";
-    default:          print "Unknown";
+    case Color.RED:   println "Stop";
+    case Color.GREEN: println "Go";
+    default:          println "Unknown";
 }
 
 var day = 3;
 switch (day) {
-    case 1:  print "Monday";
-    case 3:  print "Wednesday";
-    default: print "Other day";
+    case 1:  println "Monday";
+    case 3:  println "Wednesday";
+    default: println "Other day";
 }
 
 // ===== Arrays =====
 var nums = [4, 8, 15];
 nums[1] = 9;
-print nums[1];
-print length(nums);
+println nums[1];
+println length(nums);
 var grid = [[1, 2, 3], [4, 5, 6], [7, 8, 9]];
-print grid[2][0];
+println grid[2][0];
 
 // ===== Counter-controlled loop =====
 for (var i = 1; i <= 5; i = i + 1) {
-    print i;
+    println i;
 }
 
 var total = 0;
@@ -92,13 +92,13 @@ for (var j = 0; j < 10; j = j + 2) {
 // ===== Logic-controlled loops =====
 var k = 3;
 while (k > 0) {
-    print k;
+    println k;
     k = k - 1;
 }
 
 var x = 10;
 do {
-    print x;
+    println x;
     x = x + 1;
 } while (x < 5);
 
@@ -106,7 +106,7 @@ do {
 for (var r = 0; r < length(grid); r = r + 1) {
     for (var q = 0; q < length(grid[r]); q = q + 1) {
         if (grid[r][q] == 5) {
-            print "Found 5";
+            println "Found 5";
             break;
         }
     }
@@ -120,7 +120,7 @@ for (var a = 0; a < length(data); a = a + 1) {
         positives = positives + data[a][d];
     }
 }
-print positives;
+println positives;
 
 // ===== Enum iteration (nested loops) =====
 var colors = Color.values();
@@ -128,14 +128,14 @@ var sizes = Size.values();
 for (var s1 = 0; s1 < length(sizes); s1 = s1 + 1) {
     for (var c1 = 0; c1 < length(colors); c1 = c1 + 1) {
         if (colors[c1] == Color.BLUE) break;
-        print sizes[s1].order() * 10 + colors[c1].order();
+        println sizes[s1].order() * 10 + colors[c1].order();
     }
 }
 
 for (var e1 = 0; e1 < length(colors); e1 = e1 + 1) {
     for (var e2 = 0; e2 < length(colors); e2 = e2 + 1) {
         if (colors[e1] == colors[e2]) continue;
-        print colors[e1].order() + colors[e2].order();
+        println colors[e1].order() + colors[e2].order();
     }
 }
 
@@ -144,25 +144,25 @@ func factorial(num) {
     if (num <= 1) return 1;
     return num * factorial(num - 1);
 }
-print factorial(5);
+println factorial(5);
 
 func fib(m) {
     if (m < 2) return m;
     return fib(m - 1) + fib(m - 2);
 }
-print fib(6);
+println fib(6);
 
 // ===== Classes (tentative syntax) =====
 class Person {
     greet() {
-        print "Hi, " + this.name;
+        println "Hi, " + this.name;
     }
 }
 
 class Student < Person {
     greet() {
         super.greet();
-        print "I am a student";
+        println "I am a student";
     }
 }
 
@@ -171,13 +171,13 @@ person.name = "Alice";
 person.age = 25;
 var user = person;
 var userName = person.name;
-if (person.age >= 18) print "Adult";
+if (person.age >= 18) println "Adult";
 person.greet();
 
 var node = Person();
 node.value = 42;
 node.next = null;
-if (node.next != null) print "Has next";
+if (node.next != null) println "Has next";
 
 var pupil = Student();
 pupil.name = "Bob";
@@ -187,12 +187,12 @@ pupil.greet();
 var slots = array(2);
 slots[0] = "a";
 slots[1] = "b";
-print slots[0] + slots[1];
+println slots[0] + slots[1];
 
 func area(side) { return side * side; }
 func area(width, height) { return width * height; }
-print area(4);
-print area(3, 5);
+println area(4);
+println area(3, 5);
 
 class Point {
     init(x, y) {
@@ -202,4 +202,4 @@ class Point {
     sum() { return this.x + this.y; }
 }
 var pt = Point(1, 2);
-print pt.sum();
+println pt.sum();

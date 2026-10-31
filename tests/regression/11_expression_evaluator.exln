@@ -4,20 +4,6 @@
 var x = -2.55;
 var y = 1;
 
-// A: the input string
-var A = "x + 23.55 * y / 4";
-
-// split A into tokens, then evaluate from the leftmost operand to the rightmost
-var tokens = split(A, " ");
-var result = valueOf(tokens[0]);
-for (var i = 1; i < length(tokens); i = i + 2) {
-    result = apply(tokens[i], result, valueOf(tokens[i + 1]));
-}
-
-// convert the result to a string and append the metric unit
-var z = toString(result) + " meters";
-print z;
-
 func add(a, b) { return a + b; }
 func subtract(a, b) { return a - b; }
 func multiply(a, b) { return a * b; }
@@ -43,3 +29,16 @@ func apply(op, left, right) {
     }
 }
 
+// A: the input string
+var A = "x + 23.55 * y / 4";
+
+// split A into tokens, then evaluate from the leftmost operand to the rightmost
+var tokens = split(A, " ");
+var result = valueOf(tokens[0]);
+for (var i = 1; i < length(tokens); i = i + 2) {
+    result = apply(tokens[i], result, valueOf(tokens[i + 1]));
+}
+
+// convert the result to a string and append the metric unit
+var z = toString(result) + " meters";
+println z;

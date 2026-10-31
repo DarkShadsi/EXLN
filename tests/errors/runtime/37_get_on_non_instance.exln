@@ -1,2 +1,2 @@
 var n = 5;
-print n.x;
+println n.x;

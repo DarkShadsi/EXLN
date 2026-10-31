@@ -1,2 +1,2 @@
 enum Color { RED }
-print Color.RED + 1;
+println Color.RED + 1;
