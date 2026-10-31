@@ -7,6 +7,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     private final Environment globals = new Environment();
     private Environment environment = globals;
     private Map<Expr,Integer> locals = new HashMap<Expr,Integer>();
+    private boolean lineStart = true;
 
     public Interpreter() {
         globals.define("toNumber", new ExlnCallable() {
@@ -398,9 +399,19 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     }
     @Override
     public Void visitPrintStmt(Stmt.Print stmt) {
-        Object value = evaluate(stmt.expression);
-        String valString = stringify(value);
-        System.out.println("EXLN:: " + valString);
+        String text = stringify(evaluate(stmt.expression));
+        System.out.print(text);                                   // no "EXLN:: " prefix, no newline
+        if (!text.isEmpty()) lineStart = text.endsWith("\n");
+        return null;
+    }
+
+    @Override
+    public Void visitPrintlnStmt(Stmt.Println stmt) {
+        if (stmt.expression != null) {
+            System.out.print(stringify(evaluate(stmt.expression)));
+        }
+        System.out.println();
+        lineStart = true;
         return null;
     }
     @Override
@@ -638,5 +649,11 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
             throw new RuntimeError(bracket, "Array index out of bounds.");
         }
         return intIndex;
+    }
+    boolean atLineStart() {
+        return lineStart;
+    }
+    void markLineStart() {
+        lineStart = true;
     }
 }

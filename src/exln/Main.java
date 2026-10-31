@@ -23,6 +23,7 @@ public class Main {
 
         if (args.length == 0) {
             while(true) {
+                if (!interpreter.atLineStart()) { System.out.println(); interpreter.markLineStart(); }
                 System.out.print("EXLN:> ");
                 String line = scanner.nextLine();
                 if (line.equals("exit") || line.equals("quit") || line.equals("q")) break;
@@ -35,6 +36,7 @@ public class Main {
             try {
                 String source =  Files.readString(path);
                 main.run(source);
+                if (!interpreter.atLineStart()) System.out.println();
             } catch (IOException e) {
                 System.out.println("Error reading the file.");
                 hadError = true;
@@ -68,6 +70,7 @@ public class Main {
         hadError = true;
     }
     static void runtimeError(RuntimeError e) {
+        if (interpreter != null && !interpreter.atLineStart()) { System.out.println(); interpreter.markLineStart(); }
         if (e.token != null) {
             System.out.printf("EXLN:: [line %d] Runtime Error: %s\n", e.token.line, e.message);
         } else {

@@ -138,6 +138,13 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
         return null;
     }
     @Override
+    public Void visitPrintlnStmt(Stmt.Println stmt) {
+        if (stmt.expression != null) {
+            resolve(stmt.expression);
+        }
+        return null;
+    }
+    @Override
     public Void visitVarStmt(Stmt.Var stmt) {
         declare(stmt.name);
         if (stmt.initializer != null) {

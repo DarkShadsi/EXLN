@@ -33,7 +33,9 @@ public class Lexer {
             Map.entry("or", TokenType.OR),
             Map.entry("while", TokenType.WHILE),
             Map.entry("else", TokenType.ELSE),
+            Map.entry("println", TokenType.PRINTLN),
             Map.entry("print", TokenType.PRINT)
+
     );
 
     public Lexer(String source) {
@@ -197,19 +199,37 @@ public class Lexer {
     }
 
     private void string() {
+        StringBuilder value = new StringBuilder();
+
         while (!isAtEnd() && peek() != '"') {
-            if (peek() == '\n') line++;
-            advance();
+            char c = advance();
+            if (c == '\n') line++;
+
+            if (c == '\\') {
+                if (isAtEnd()) break;               // the file ends right after the backslash
+                char next = advance();
+                if (next == '\n') line++;
+                switch (next) {
+                    case 'n':  value.append('\n'); break;
+                    case 't':  value.append('\t'); break;
+                    case '"':  value.append('"');  break;
+                    case '\\': value.append('\\'); break;
+                    default:
+                        Main.error(line, "Unknown escape sequence '\\" + next + "'.");
+                }
+            } else {
+                value.append(c);
+            }
         }
 
         if (isAtEnd()) {
             Main.error(line, "Unterminated string");
-        } else {
-            advance();
-            String stringLexeme = source.substring(start, current);
-            String string = source.substring(start + 1, current - 1);
-            tokens.add(new Token(TokenType.STRING, stringLexeme, string, line));
+            return;
         }
+
+        advance();                                   // the closing quote
+        String lexeme = source.substring(start, current);   // the text as written, with the quotes
+        tokens.add(new Token(TokenType.STRING, lexeme, value.toString(), line));
     }
 
     private void number() {

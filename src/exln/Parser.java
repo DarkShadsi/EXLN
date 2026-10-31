@@ -80,6 +80,7 @@ public class Parser {
                 case DO:
                 case SWITCH:
                 case PRINT:
+                case PRINTLN:
                 case RETURN:
                 case BREAK:
                 case CONTINUE:
@@ -357,6 +358,7 @@ public class Parser {
         if (match(TokenType.IF)) return ifStatement();
         if (match(TokenType.SWITCH)) return switchStatement();
         if (match(TokenType.PRINT)) return printStatement();
+        if (match(TokenType.PRINTLN)) return printlnStatement();
         if (match(TokenType.RETURN)) return returnStatement();
         if (match(TokenType.WHILE)) return whileStatement();
         if (match(TokenType.DO)) return doWhileStatement();
@@ -370,6 +372,14 @@ public class Parser {
         Expr value = expression();
         consume(TokenType.SEMICOLON, "Expect ';' after value.");
         return new Stmt.Print(value);
+    }
+    private Stmt printlnStatement() {
+        Expr value = null;
+        if (!check(TokenType.SEMICOLON)) {
+            value = expression();
+        }
+        consume(TokenType.SEMICOLON, "Expect ';' after value.");
+        return new Stmt.Println(value);
     }
     private Stmt expressionStatement() {
         Expr expr = expression();
