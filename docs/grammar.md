@@ -15,7 +15,7 @@ Source of truth for the implementation. Update this file first whenever the gram
 ```
 and      break    case     class    continue  default  do      else
 enum     false    for      func     if        null     or      print
-return   super    switch   this     true      var      while
+println  return   super    switch   this      true     var     while
 ```
 
 ## 3. Full EBNF
@@ -34,7 +34,7 @@ enumDecl     ::= "enum" identifier "{" identifier ( "," identifier )* "}"
 varDecl      ::= "var" identifier ( "=" expression )? ";"
 
 (* ---------- Statements ---------- *)
-statement    ::= exprStmt | forStmt | ifStmt | switchStmt | printStmt
+statement    ::= exprStmt | forStmt | ifStmt | switchStmt | printStmt | printlnStmt
                | returnStmt | whileStmt | doWhileStmt
                | breakStmt | continueStmt | block
 
@@ -47,6 +47,7 @@ switchStmt   ::= "switch" "(" expression ")" "{"
                  caseClause* ( "default" ":" statement* )? "}"
 caseClause   ::= "case" expression ":" statement*
 printStmt    ::= "print" expression ";"
+printlnStmt  ::= "println" expression? ";"
 returnStmt   ::= "return" expression? ";"
 whileStmt    ::= "while" "(" expression ")" statement
 doWhileStmt  ::= "do" block "while" "(" expression ")" ";"
@@ -78,7 +79,8 @@ primary      ::= "true" | "false" | "null" | "this"
 (* ---------- Lexical ---------- *)
 identifier   ::= letter ( letter | digit | "_" )*
 NUMBER       ::= digit+ ( "." digit+ )?
-STRING       ::= '"' ( any character except '"' )* '"'
+STRING       ::= '"' ( character | escape )* '"'      (* character: anything except '"' and a backslash *)
+escape       ::= backslash ( "n" | "t" | '"' | backslash )      (* backslash is the character \ *)
 letter       ::= "a" … "z" | "A" … "Z"
 digit        ::= "0" … "9"
 ```
@@ -88,7 +90,7 @@ digit        ::= "0" … "9"
 | Type | Notes |
 |---|---|
 | Number | 64-bit double. Whole values print without `.0` (e.g. `42`) |
-| String | Built-in literal type |
+| String | Built-in literal type. Escape sequences: `\n` (new line), `\t` (tab), `\"` (double quote), `\\` (backslash). Any other escape is a lexer error ("Unknown escape sequence") |
 | Boolean | `true`, `false` |
 | Null | `null` |
 | Enum | User-defined ordinal type. Members numbered 0, 1, 2... in declaration order |
@@ -140,9 +142,9 @@ Enum values support only `==` and `!=`. Arithmetic on an enum is a runtime error
 No grammar change: the `funDecl`, `function`, and `parameters` rules above already cover everything here.
 
 - **Overloading by parameter count.** Several functions may share a name in the same scope if they take different numbers of parameters. A call picks the function whose parameter count equals the number of arguments.
-  - Declaring the same name with the same parameter count in the same scope is an error.
-  - A call with no matching parameter count is a runtime error ("No overload of 'name' takes N arguments.").
-  - EXLN is dynamically typed, so overloads cannot differ by parameter type.
+    - Declaring the same name with the same parameter count in the same scope is an error.
+    - A call with no matching parameter count is a runtime error ("No overload of 'name' takes N arguments.").
+    - EXLN is dynamically typed, so overloads cannot differ by parameter type.
 - **Parameter passing.** All arguments are passed by value. Primitives (Number, String, Boolean, null, enum) are copied. Arrays and class instances pass a copy of the reference, so a function can change the caller's object through it, but reassigning the parameter does not affect the caller. There is no `ref` keyword.
 - **Return.** `return value;` exits the function with the value. Without a value, or without `return`, the result is `null`.
 - **Scope.** Functions are closures and use static (lexical) scoping.
@@ -160,16 +162,16 @@ class Name < Superclass { methods }
 - **Instances.** Calling the class, `Name(args)`, creates an instance. Fields are not declared. They are created by assignment, `obj.field = value`, and reading a field that was never set is a runtime error ("Undefined property 'x'."). A field with the same name as a method hides the method.
 - **Methods.** Written like functions, without the `func` keyword. Inside a method, `this` refers to the instance. A method taken from an instance (`var m = obj.method;`) stays bound to that instance.
 - **Initializer.** A method named `init` runs when the instance is created, and receives the arguments of `Name(args)`.
-  - A class with no `init` accepts only `Name()`.
-  - `init` always returns the instance, also on a bare `return;`.
-  - `return value;` with a value inside `init` is an error.
+    - A class with no `init` accepts only `Name()`.
+    - `init` always returns the instance, also on a bare `return;`.
+    - `return value;` with a value inside `init` is an error.
 - **Overloading by parameter count.** Methods, including `init`, are chosen by name and number of arguments, the same rule as functions.
-  - Two methods with the same name and parameter count in one class are an error ("Method 'f' with N parameters is already defined in class 'A'.").
-  - A call with no matching method is a runtime error ("No overload of 'f' takes N arguments.").
+    - Two methods with the same name and parameter count in one class are an error ("Method 'f' with N parameters is already defined in class 'A'.").
+    - A call with no matching method is a runtime error ("No overload of 'f' takes N arguments.").
 - **Inheritance.** `class B < A` makes `B` inherit every method of `A`.
-  - A method in `B` with the **same name and parameter count** as one in `A` overrides it.
-  - A method in `B` with the same name and a **different parameter count** is added to the inherited ones, so both are callable.
-  - The superclass must be a class ("Superclass must be a class."). A class cannot inherit from itself.
+    - A method in `B` with the **same name and parameter count** as one in `A` overrides it.
+    - A method in `B` with the same name and a **different parameter count** is added to the inherited ones, so both are callable.
+    - The superclass must be a class ("Superclass must be a class."). A class cannot inherit from itself.
 - **`super`.** `super.method(args)` calls the superclass's version of a method on the current instance. It always refers to the superclass of the class where the method is written, also when the instance belongs to a deeper subclass. `super.init(args)` runs the superclass initializer.
 - **Polymorphism.** A call such as `animal.speak()` runs the version of `speak` that belongs to the instance's class when the program runs.
 - **Equality.** Two instances are equal only if they are the same object.
@@ -193,7 +195,14 @@ These are reported by the resolver, and stop the program from running.
 
 Two `func` declarations or two methods with the same name are **not** reported here, because they may be overloads. The interpreter reports a clash when the parameter counts are equal.
 
-## 11. Output format of values
+## 11. Output
+
+- `print expression;` writes the value and stays on the same line.
+- `println expression;` writes the value and ends the line.
+- `println;` writes just a line break.
+- Program output has no prefix. Error messages start with `EXLN::`.
+
+Format of each value:
 
 | Value | Printed as |
 |---|---|
