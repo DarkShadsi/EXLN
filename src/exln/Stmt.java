@@ -7,6 +7,7 @@ public abstract class Stmt {
         R visitBlockStmt(Block stmt);
         R visitExpressionStmt(Expression stmt);
         R visitPrintStmt(Print stmt);
+        R visitPrintlnStmt(Println stmt);
         R visitVarStmt(Var stmt);
         R visitIfStmt(If stmt);
         R visitWhileStmt(While stmt);
@@ -19,7 +20,6 @@ public abstract class Stmt {
         R visitClassStmt(Class stmt);
         R visitEnumStmt(Enum stmt);
     }
-
     public static class Block extends Stmt {
         public final List<Stmt> statements;
 
@@ -32,6 +32,7 @@ public abstract class Stmt {
             return visitor.visitBlockStmt(this);
         }
     }
+
     public static class Expression extends Stmt {
         public final Expr expression;
 
@@ -44,6 +45,7 @@ public abstract class Stmt {
             return visitor.visitExpressionStmt(this);
         }
     }
+
     public static class Print extends Stmt {
         public final Expr expression;
 
@@ -56,6 +58,20 @@ public abstract class Stmt {
             return visitor.visitPrintStmt(this);
         }
     }
+
+    public static class Println extends Stmt {
+        public final Expr expression;
+
+        public Println(Expr expression) {
+            this.expression = expression;
+        }
+
+        @Override
+        public <R> R accept(Visitor<R> visitor) {
+            return visitor.visitPrintlnStmt(this);
+        }
+    }
+
     public static class Var extends Stmt {
         public final Token name;
         public final Expr initializer;
@@ -70,6 +86,7 @@ public abstract class Stmt {
             return visitor.visitVarStmt(this);
         }
     }
+
     public static class If extends Stmt {
         public final Expr condition;
         public final Stmt thenBranch;
@@ -86,6 +103,7 @@ public abstract class Stmt {
             return visitor.visitIfStmt(this);
         }
     }
+
     public static class While extends Stmt {
         public final Expr condition;
         public final Stmt body;
@@ -102,6 +120,7 @@ public abstract class Stmt {
             return visitor.visitWhileStmt(this);
         }
     }
+
     public static class DoWhile extends Stmt {
         public final Stmt body;
         public final Expr condition;
@@ -116,6 +135,7 @@ public abstract class Stmt {
             return visitor.visitDoWhileStmt(this);
         }
     }
+
     public static class Break extends Stmt {
         public final Token keyword;
 
@@ -128,6 +148,7 @@ public abstract class Stmt {
             return visitor.visitBreakStmt(this);
         }
     }
+
     public static class Continue extends Stmt {
         public final Token keyword;
 
@@ -140,6 +161,7 @@ public abstract class Stmt {
             return visitor.visitContinueStmt(this);
         }
     }
+
     public static class Switch extends Stmt {
         public final Expr subject;
         public final List<Expr> caseValues;
@@ -158,6 +180,7 @@ public abstract class Stmt {
             return visitor.visitSwitchStmt(this);
         }
     }
+
     public static class Function extends Stmt {
         public final Token name;
         public final List<Token> params;
@@ -174,6 +197,7 @@ public abstract class Stmt {
             return visitor.visitFunctionStmt(this);
         }
     }
+
     public static class Return extends Stmt {
         public final Token keyword;
         public final Expr value;
@@ -188,6 +212,7 @@ public abstract class Stmt {
             return visitor.visitReturnStmt(this);
         }
     }
+
     public static class Class extends Stmt {
         public final Token name;
         public final Expr.Variable superclass;
@@ -204,6 +229,7 @@ public abstract class Stmt {
             return visitor.visitClassStmt(this);
         }
     }
+
     public static class Enum extends Stmt {
         public final Token name;
         public final List<Token> members;
@@ -218,6 +244,7 @@ public abstract class Stmt {
             return visitor.visitEnumStmt(this);
         }
     }
+
 
     public abstract <R> R accept(Visitor<R> visitor);
 }

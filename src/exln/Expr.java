@@ -34,6 +34,7 @@ public abstract class Expr {
             return visitor.visitAssignExpr(this);
         }
     }
+
     public static class Binary extends Expr {
         public final Expr left;
         public final Token operator;
@@ -50,6 +51,7 @@ public abstract class Expr {
             return visitor.visitBinaryExpr(this);
         }
     }
+
     public static class Logical extends Expr {
         public final Expr left;
         public final Token operator;
@@ -66,6 +68,7 @@ public abstract class Expr {
             return visitor.visitLogicalExpr(this);
         }
     }
+
     public static class Unary extends Expr {
         public final Token operator;
         public final Expr right;
@@ -80,6 +83,7 @@ public abstract class Expr {
             return visitor.visitUnaryExpr(this);
         }
     }
+
     public static class Grouping extends Expr {
         public final Expr expression;
 
@@ -92,6 +96,7 @@ public abstract class Expr {
             return visitor.visitGroupingExpr(this);
         }
     }
+
     public static class Literal extends Expr {
         public final Object value;
 
@@ -104,6 +109,7 @@ public abstract class Expr {
             return visitor.visitLiteralExpr(this);
         }
     }
+
     public static class Variable extends Expr {
         public final Token name;
 
@@ -116,6 +122,7 @@ public abstract class Expr {
             return visitor.visitVariableExpr(this);
         }
     }
+
     public static class Call extends Expr {
         public final Expr callee;
         public final Token paren;
@@ -132,6 +139,7 @@ public abstract class Expr {
             return visitor.visitCallExpr(this);
         }
     }
+
     public static class Get extends Expr {
         public final Expr object;
         public final Token name;
@@ -146,6 +154,7 @@ public abstract class Expr {
             return visitor.visitGetExpr(this);
         }
     }
+
     public static class Set extends Expr {
         public final Expr object;
         public final Token name;
@@ -162,6 +171,7 @@ public abstract class Expr {
             return visitor.visitSetExpr(this);
         }
     }
+
     public static class This extends Expr {
         public final Token keyword;
 
@@ -174,6 +184,7 @@ public abstract class Expr {
             return visitor.visitThisExpr(this);
         }
     }
+
     public static class Super extends Expr {
         public final Token keyword;
         public final Token methodName;
@@ -188,6 +199,7 @@ public abstract class Expr {
             return visitor.visitSuperExpr(this);
         }
     }
+
     public static class ArrayLiteral extends Expr {
         public final List<Expr> elements;
 
@@ -200,6 +212,7 @@ public abstract class Expr {
             return visitor.visitArrayLiteralExpr(this);
         }
     }
+
     public static class Index extends Expr {
         public final Expr object;
         public final Token bracket;
@@ -216,6 +229,7 @@ public abstract class Expr {
             return visitor.visitIndexExpr(this);
         }
     }
+
     public static class IndexSet extends Expr {
         public final Expr object;
         public final Token bracket;
@@ -234,6 +248,7 @@ public abstract class Expr {
             return visitor.visitIndexSetExpr(this);
         }
     }
+
 
     public abstract <R> R accept(Visitor<R> visitor);
 }

@@ -37,6 +37,7 @@ public class GenerateAst {
                 "Block: List<Stmt> statements",
                 "Expression: Expr expression",
                 "Print: Expr expression",
+                "Println: Expr expression",
                 "Var: Token name, Expr initializer",
                 "If: Expr condition, Stmt thenBranch, Stmt elseBranch",
                 "While: Expr condition, Stmt body, Stmt increment",
